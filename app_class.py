@@ -43,12 +43,7 @@ class App:
         self.higl_num_imgs = NumberSprites('images/numbers_highlight.png', NUM_COLS)
         self.sound_index = 0
         self.num_display = pygame.Surface((60, 60))
-        ############ Extra surfaces for images ############
-        self.surface_1 = pygame.Surface((NUM_DISPLAY_WIDTH, NUM_DISPLAY_HEIGHT), pygame.SRCALPHA, 32)
-        self.surface_2 = pygame.Surface((NUM_DISPLAY_WIDTH, NUM_DISPLAY_HEIGHT), pygame.SRCALPHA, 32)
-        self.surface_3 = pygame.Surface((NUM_DISPLAY_WIDTH, NUM_DISPLAY_HEIGHT), pygame.SRCALPHA, 32)
-        self.surface_4 = pygame.Surface((NUM_DISPLAY_WIDTH, NUM_DISPLAY_HEIGHT), pygame.SRCALPHA, 32)
-        self.surface_5 = pygame.Surface((NUM_DISPLAY_WIDTH, NUM_DISPLAY_HEIGHT), pygame.SRCALPHA, 32)
+        # resources for learn_digits
         self.index = 0
         self.play = True
         self.learn_digits_stage = 0
@@ -137,8 +132,8 @@ class App:
     ############# HELPER FUNCTIONS ##############
     def load(self):
         # set background
-        # self.screen.fill(K_BLUE)
         self.screen.fill(K_BLUE)
+        # display start message
         draw_text('Welcome', self.screen, [
             SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50], START_TEXT_SIZE, K_PURPLE, ALL_FONT, centered=True)
         draw_text("Let's learn to count!", self.screen, [
@@ -149,9 +144,8 @@ class App:
         INTRO.play()
         while pygame.mixer.get_busy():
             self.clock.tick(10)
-        # display start message
-        # load sprite sheets
-        # load sound files
+            #ignore any events while playing sound
+            pygame.event.clear()
 
     def play_all_num(self):
         """
@@ -170,15 +164,10 @@ class App:
         """
         index = 0
         while index <= 9:
-            self.surface_1.fill(K_PURPLE)
-            self.reg_num_imgs.draw(self.surface_1, index, NUM_DISPLAY_WIDTH / 2, NUM_DISPLAY_HEIGHT / 2)
-            self.screen.blit(self.surface_1, (SCREEN_WIDTH / 2 - NUM_DISPLAY_WIDTH / 2,
-                                              SCREEN_HEIGHT / 2 - NUM_DISPLAY_HEIGHT / 2))
-            pygame.display.update()
+            self.reg_num_imgs.draw(self.screen, index, NUM_DISPLAY_WIDTH / 2, NUM_DISPLAY_HEIGHT / 2)
             numbers_list[index].play()
             while pygame.mixer.get_busy():
-                self.clock.tick(10)
-                pygame.event.pump()
+                pygame.event.clear()
             index += 1
 
     def play_one_ten(self):
