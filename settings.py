@@ -72,3 +72,9 @@ TEN_TO_TWENTY = 'ten to twenty'
 
 ###################### PRINT MESSAGES ##########################
 START_MESSAGE = 'Welcom to '
+
+####################### DELAY TIMES ############################
+TWO_DELAY = 2000
+THREE_DELAY = 3000
+FIVE_DELAY = 5000
+TEN_DELAY = 10000

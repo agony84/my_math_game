@@ -34,6 +34,11 @@ BEGIN_DIGITS = pygame.mixer.Sound('sound_files/begin_digits.wav')
 NUMS_FROM_DIGITS = pygame.mixer.Sound('sound_files/numbers_from_digits.wav')
 TEN_DIGITS = pygame.mixer.Sound('sound_files/only_10_digits.wav')
 SAY_TOGETHER = pygame.mixer.Sound('sound_files/say_together.wav')
+FIND_DIGIT = pygame.mixer.Sound('sound_files/find_the_digit.wav')
+FOUND_DIGIT = pygame.mixer.Sound('sound_files/found_digit.wav')
+VERY_GOOD = pygame.mixer.Sound('sound_files/very_good.wav')
+NOT_RIGHT = pygame.mixer.Sound('sound_files/not_right.wav')
+TRY_AGAIN = pygame.mixer.Sound('sound_files/try_again.wav')
 
 numbers_list = (ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, THIRTEEN, FOURTEEN,
                 FIFTEEN, SIXTEEN, SEVENTEEN, EIGHTEEN, NINETEEN, TWENTY)

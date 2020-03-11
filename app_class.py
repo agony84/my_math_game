@@ -9,6 +9,7 @@ Main app code.
 
 import pygame
 import sys
+import random
 from settings import *
 from number_spritesheet_class import *
 from sound_files import *
@@ -30,10 +31,10 @@ def draw_text(words, screen, pos, size, color, font_name, centered=False):
 class App:
 
     def __init__(self):
-        # set screen
+        # set game screen
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         # set game state
-        self.state = START
+        self.state = LEARN_DIGITS
         # set running
         self.running = True
         # set clock
@@ -46,7 +47,9 @@ class App:
         # resources for learn_digits
         self.index = 0
         self.play = True
-        self.learn_digits_stage = 0
+        self.learn_digits_stage = 2
+        self.load_state = True
+        self.score = 0
 
     def run(self):
         while self.running:
@@ -58,6 +61,12 @@ class App:
                 self.learn_digits_events()
                 self.learn_digits_update()
                 self.learn_digits_draw()
+            elif self.state == ZERO_TO_TEN:
+                if self.load_state:
+                    self.zero_ten_load()
+                self.zero_ten_events()
+                self.zero_ten_update()
+                self.zero_ten_draw()
             else:
                 self.running = False
             self.clock.tick(FPS)
@@ -103,14 +112,109 @@ class App:
                 if self.learn_digits_stage == 0:
                     NUMS_FROM_DIGITS.play()
                     while pygame.mixer.get_busy():
-                        self.clock.tick(10)
+                        pygame.event.clear()
                     TEN_DIGITS.play()
                     while pygame.mixer.get_busy():
-                        self.clock.tick(10)
+                        pygame.event.clear()
                     self.play_digits()
                     self.learn_digits_stage += 1
-                if self.index > 9:
-                    self.index = 0
+                elif self.learn_digits_stage == 1:
+                    SAY_TOGETHER.play()
+                    while pygame.mixer.get_busy():
+                        pygame.event.clear()
+                    self.play_digits(TWO_DELAY)
+                    self.learn_digits_stage += 1
+                elif self.learn_digits_stage == 2:
+                    found = False
+                    find_digit = random.randint(0, 9)
+                    rand1 = random.randint(0, 9)
+                    while rand1 == find_digit:
+                        rand1 = random.randint(0, 9)
+                    rand2 = random.randint(0, 9)
+                    while rand2 == find_digit:
+                        rand2 = random.randint(0, 9)
+                    FIND_DIGIT.play()
+                    while pygame.mixer.get_busy():
+                        pygame.event.clear()
+                    num1_pos = (SCREEN_CENTER[0] / 2, SCREEN_CENTER[1])
+                    num2_pos = (SCREEN_CENTER[0], SCREEN_CENTER[1])
+                    num3_pos = (((SCREEN_CENTER[0] / 2) + SCREEN_CENTER[0]), SCREEN_CENTER[1])
+                    find_list = [find_digit, rand1, rand2]
+                    find_list.sort()
+                    find_idx = 0
+                    num_pos_list = (num1_pos, num2_pos, num3_pos)
+                    while find_idx < len(find_list):
+                        if find_list[find_idx] == find_digit:
+                            break
+                        else:
+                            find_idx += 1
+
+                    self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
+                    self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
+                    self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
+                    self.play_number(find_digit)
+                    while not found:
+                        mouse_pos = pygame.mouse.get_pos()
+                        for selection in pygame.event.get():
+                            if (num1_pos[0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
+                                    num1_pos[0] - NUM_DISPLAY_WIDTH / 2) and (
+                                    num1_pos[1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
+                                    num1_pos[1] - NUM_DISPLAY_HEIGHT / 2):
+                                self.higl_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
+                            else:
+                                self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
+
+                            if (num2_pos[0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
+                                    num2_pos[0] - NUM_DISPLAY_WIDTH / 2) and (
+                                    num2_pos[1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
+                                    num2_pos[1] - NUM_DISPLAY_HEIGHT / 2):
+                                self.higl_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
+                            else:
+                                self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
+
+                            if (num3_pos[0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
+                                    num3_pos[0] - NUM_DISPLAY_WIDTH / 2) and (
+                                    num3_pos[1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
+                                    num3_pos[1] - NUM_DISPLAY_HEIGHT / 2):
+                                self.higl_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
+                            else:
+                                self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
+
+                            if selection.type == pygame.QUIT or (selection.type == pygame.KEYDOWN and selection.key == QUIT):
+                                pygame.quit()
+                                sys.exit()
+                            if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                                if (num_pos_list[find_idx][0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
+                                        num_pos_list[find_idx][0] - NUM_DISPLAY_WIDTH / 2) and (
+                                        num_pos_list[find_idx][1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
+                                        num_pos_list[find_idx][1] - NUM_DISPLAY_HEIGHT / 2):
+                                    VERY_GOOD.play()
+                                    while pygame.mixer.get_busy():
+                                        self.clock.tick(1000)
+                                        pygame.event.clear()
+                                    FOUND_DIGIT.play()
+                                    while pygame.mixer.get_busy():
+                                        self.clock.tick(1000)
+                                        pygame.event.clear()
+                                    self.play_number(find_digit)
+                                    found = True
+                                else:
+                                    NOT_RIGHT.play()
+                                    while pygame.mixer.get_busy():
+                                        self.clock.tick(1000)
+                                        pygame.event.clear()
+                                    TRY_AGAIN.play()
+                                    while pygame.mixer.get_busy():
+                                        self.clock.tick(1000)
+                                        pygame.event.clear()
+                                    FIND_DIGIT.play()
+                                    while pygame.mixer.get_busy():
+                                        self.clock.tick(1000)
+                                        pygame.event.clear()
+                                    self.play_number(find_digit)
+
+
+
 
     def learn_digits_update(self):
         if self.play:
@@ -121,13 +225,27 @@ class App:
 
     def learn_digits_draw(self, is_img=False, index=None):
         self.screen.fill(K_PURPLE)
-        self.screen.blit(self.surface_1, (SCREEN_WIDTH / 2 - NUM_DISPLAY_WIDTH / 2,
-                                          SCREEN_HEIGHT / 2 - NUM_DISPLAY_HEIGHT / 2))
+        # self.screen.blit(self.surface_1, (SCREEN_WIDTH / 2 - NUM_DISPLAY_WIDTH / 2,
+        #                                   SCREEN_HEIGHT / 2 - NUM_DISPLAY_HEIGHT / 2))
         draw_text("Let's learn digits", self.screen, [
             SCREEN_WIDTH // 2, 40], START_TEXT_SIZE + 10, K_YELLOW, ALL_FONT, centered=True)
         draw_text("Press SPACE to continue.", self.screen, [
             SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150], START_TEXT_SIZE - 10, K_YELLOW, ALL_FONT, centered=True)
         pygame.display.flip()
+
+    ############ ZERO TO TEN FUNCTIONS #########
+    def zero_ten_events(self):
+        pass
+
+    def zero_ten_update(self):
+        pass
+
+    def zero_ten_draw(self):
+        pass
+
+    def zero_ten_load(self):
+        pass
+
 
     ############# HELPER FUNCTIONS ##############
     def load(self):
@@ -144,7 +262,7 @@ class App:
         INTRO.play()
         while pygame.mixer.get_busy():
             self.clock.tick(10)
-            #ignore any events while playing sound
+            # ignore any events while playing sound
             pygame.event.clear()
 
     def play_all_num(self):
@@ -157,27 +275,40 @@ class App:
             while pygame.mixer.get_busy():
                 self.clock.tick(10)
 
-    def play_digits(self):
+    def play_digits(self, delay=10):
         """
         play all digits (0 - 9) sound files
         :return: None
         """
         index = 0
         while index <= 9:
-            self.reg_num_imgs.draw(self.screen, index, NUM_DISPLAY_WIDTH / 2, NUM_DISPLAY_HEIGHT / 2)
+            self.reg_num_imgs.draw(self.screen, index, SCREEN_CENTER[0], SCREEN_CENTER[1])
             numbers_list[index].play()
             while pygame.mixer.get_busy():
+                pygame.time.delay(delay)
                 pygame.event.clear()
             index += 1
 
-    def play_one_ten(self):
+    def play_one_ten(self, delay=10):
         """
         play numbers 1 - 10 sound files
         :return: None
         """
         index = 1
         while index <= 10:
+            self.reg_num_imgs.draw(self.screen, index, SCREEN_CENTER[0], SCREEN_CENTER[1])
             numbers_list[index].play()
             while pygame.mixer.get_busy():
-                self.clock.tick(10)
+                pygame.time.delay(delay)
+                pygame.event.clear()
             index += 1
+
+    def play_number(self, number):
+        """
+        plays number sound file based on paramater
+        :param number: used to select number sound file
+        :return: None
+        """
+        numbers_list[number].play()
+        while pygame.mixer.get_busy():
+            pygame.event.clear()
