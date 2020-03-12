@@ -34,7 +34,7 @@ class App:
         # set game screen
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         # set game state
-        self.state = LEARN_DIGITS
+        self.state = START
         # set running
         self.running = True
         # set clock
@@ -47,7 +47,7 @@ class App:
         # resources for learn_digits
         self.index = 0
         self.play = True
-        self.learn_digits_stage = 2
+        self.learn_digits_stage = 0
         self.load_state = True
         self.score = 0
 
@@ -128,31 +128,45 @@ class App:
                     found = False
                     find_digit = random.randint(0, 9)
                     rand1 = random.randint(0, 9)
+                    rand2 = random.randint(0, 9)
+
+                    # adjust random numbers so they aren't the same as target digit
                     while rand1 == find_digit:
                         rand1 = random.randint(0, 9)
                     rand2 = random.randint(0, 9)
                     while rand2 == find_digit:
                         rand2 = random.randint(0, 9)
-                    FIND_DIGIT.play()
-                    while pygame.mixer.get_busy():
-                        pygame.event.clear()
+
+                    # create number display positions
                     num1_pos = (SCREEN_CENTER[0] / 2, SCREEN_CENTER[1])
                     num2_pos = (SCREEN_CENTER[0], SCREEN_CENTER[1])
                     num3_pos = (((SCREEN_CENTER[0] / 2) + SCREEN_CENTER[0]), SCREEN_CENTER[1])
+                    """
+                    put numbers in list to display in numerical order.
+                    find index of target digit to use when checking for correct user selection
+                    """
                     find_list = [find_digit, rand1, rand2]
                     find_list.sort()
                     find_idx = 0
-                    num_pos_list = (num1_pos, num2_pos, num3_pos)
                     while find_idx < len(find_list):
                         if find_list[find_idx] == find_digit:
                             break
                         else:
                             find_idx += 1
+                    """
+                    put positions in list so target digit index can be used for correct user selection checking
+                    """
+                    num_pos_list = (num1_pos, num2_pos, num3_pos)
 
+                    """ Play find digit and target digit sounds and display digits"""
+                    FIND_DIGIT.play()
+                    while pygame.mixer.get_busy():
+                        pygame.event.clear()
+                    self.play_number(find_digit)
                     self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
                     self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
                     self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
-                    self.play_number(find_digit)
+
                     while not found:
                         mouse_pos = pygame.mouse.get_pos()
                         for selection in pygame.event.get():
