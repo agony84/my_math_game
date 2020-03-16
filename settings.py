@@ -60,12 +60,14 @@ K_BLUE = (55, 182, 246)
 
 
 ################### FONT SETTINGS ########################
-
+WELCOME_SIZE = 60
 START_TEXT_SIZE = 30
 ALL_FONT = "goudystout"
 
 ##################### GAME STATES ########################
 START = 'start'
+LETTER_LEVEL_SEL = 'select letter level'
+NUM_LEVEL_SEL = 'select num level'
 LEARN_DIGITS = 'learn digits'
 ZERO_TO_TEN = 'zero to ten'
 TEN_TO_TWENTY = 'ten to twenty'

@@ -18,6 +18,7 @@ from buttons_class import *
 pygame.init()
 
 
+############## STATIC FUNCTIONS #####################
 def draw_text(words, screen, pos, size, color, font_name, centered=False):
     font = pygame.font.SysFont(font_name, size)
     text = font.render(words, False, color)
@@ -39,9 +40,8 @@ class App:
         self.running = True
         # set clock
         self.clock = pygame.time.Clock()
-        self.load()
-        self.reg_num_imgs = NumberSprites('images/spritesheet_numbers_plain.png', NUM_COLS)
-        self.higl_num_imgs = NumberSprites('images/numbers_highlight.png', NUM_COLS)
+        self.reg_num_imgs = NumberSprites('images/spritesheet_numbers_plain.png', NUM_COLS, 100, 100)
+        self.higl_num_imgs = NumberSprites('images/numbers_highlight.png', NUM_COLS, 100, 100)
         self.sound_index = 0
         self.num_display = pygame.Surface((60, 60))
         # resources for learn_digits
@@ -50,6 +50,13 @@ class App:
         self.learn_digits_stage = 0
         self.load_state = True
         self.score = 0
+        self.display_score = False
+        self.incorrect_find = 0
+        self.number_button = Button(self.screen, 150, 50, SCREEN_CENTER[0] - (150 / 2), SCREEN_CENTER[1] - 50,
+                                    K_ORANGE, 'Numbers')
+        self.letter_button = Button(self.screen, 150, 50, SCREEN_CENTER[0] - (150 / 2), SCREEN_CENTER[1] + 50,
+                                    K_GREEN, 'Letters')
+        self.load()
 
     def run(self):
         while self.running:
@@ -61,9 +68,15 @@ class App:
                 self.learn_digits_events()
                 self.learn_digits_update()
                 self.learn_digits_draw()
-            elif self.state == ZERO_TO_TEN:
                 if self.load_state:
-                    self.zero_ten_load()
+                    self.learn_digits_load()
+            elif self.state == LEARN_ALPHABET:
+                self.learn_alphabet_events()
+                self.learn_alphabet_update()
+                self.learn_alphabet_draw()
+                if self.load_state:
+                    self.learn_alphabet_load()
+            elif self.state == ZERO_TO_TEN:
                 self.zero_ten_events()
                 self.zero_ten_update()
                 self.zero_ten_draw()
@@ -75,32 +88,29 @@ class App:
 
     ############## START FUNCTIONS #############
     def start_events(self):
+        mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 self.running = False
-            if event.type == pygame.KEYDOWN and event.key == K_SPACE:
-                self.state = LEARN_DIGITS
-                # self.reg_num_imgs.draw(0, LEFT_CENTER[0], LEFT_CENTER[1])
-                # self.higl_num_imgs.draw(self.screen, self.sound_index, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-                # if self.sound_index == 0:
-                #     ZERO.play()
-                # elif self.sound_index == 1:
-                #     ONE.play()
-                # elif self.sound_index == 2:
-                #     TWO.play()
-                # self.sound_index += 1
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                if self.number_button.x <= mouse_pos[0] <= self.number_button.x + self.number_button.width and self.number_button.y <= mouse_pos[1] <= self.number_button.y + self.number_button.height:
+                    self.state = LEARN_DIGITS
+                    self.load_state = True
+                if self.letter_button.x <= mouse_pos[0] <= self.letter_button.x + self.letter_button.width and self.letter_button.y <= mouse_pos[1] <= self.letter_button.y + self.letter_button.height:
+                    self.state = LEARN_ALPHABET
+                    self.load_state = True
 
     def start_update(self):
         pass
 
     def start_draw(self):
+        # set background
         self.screen.fill(K_BLUE)
+        # display start message
         draw_text('Welcome', self.screen, [
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50], START_TEXT_SIZE, K_PURPLE, ALL_FONT, centered=True)
-        draw_text("Let's learn to count!", self.screen, [
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50], START_TEXT_SIZE, K_PURPLE, ALL_FONT, centered=True)
-        draw_text("Press SPACE to get started.", self.screen, [
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150], START_TEXT_SIZE - 10, K_PURPLE, ALL_FONT, centered=True)
+            SCREEN_CENTER[0], 100], WELCOME_SIZE, K_PURPLE, ALL_FONT, centered=True)
+        self.number_button.draw()
+        self.letter_button.draw()
         pygame.display.update()
 
     ############################### LEARN DIGITS FUNCTION ################################
@@ -110,142 +120,151 @@ class App:
                 self.running = False
             if event.type == KEYDOWN and event.key == pygame.K_SPACE:
                 if self.learn_digits_stage == 0:
-                    NUMS_FROM_DIGITS.play()
-                    while pygame.mixer.get_busy():
-                        pygame.event.clear()
-                    TEN_DIGITS.play()
-                    while pygame.mixer.get_busy():
-                        pygame.event.clear()
-                    self.play_digits()
-                    self.learn_digits_stage += 1
+                    self.learn_digits_stage0()
                 elif self.learn_digits_stage == 1:
-                    SAY_TOGETHER.play()
-                    while pygame.mixer.get_busy():
-                        pygame.event.clear()
-                    self.play_digits(TWO_DELAY)
-                    self.learn_digits_stage += 1
+                    self.learn_digits_stage1()
                 elif self.learn_digits_stage == 2:
-                    found = False
-                    find_digit = random.randint(0, 9)
-                    rand1 = random.randint(0, 9)
-                    rand2 = random.randint(0, 9)
-
-                    # adjust random numbers so they aren't the same as target digit
-                    while rand1 == find_digit:
-                        rand1 = random.randint(0, 9)
-                    rand2 = random.randint(0, 9)
-                    while rand2 == find_digit:
-                        rand2 = random.randint(0, 9)
-
-                    # create number display positions
-                    num1_pos = (SCREEN_CENTER[0] / 2, SCREEN_CENTER[1])
-                    num2_pos = (SCREEN_CENTER[0], SCREEN_CENTER[1])
-                    num3_pos = (((SCREEN_CENTER[0] / 2) + SCREEN_CENTER[0]), SCREEN_CENTER[1])
-                    """
-                    put numbers in list to display in numerical order.
-                    find index of target digit to use when checking for correct user selection
-                    """
-                    find_list = [find_digit, rand1, rand2]
-                    find_list.sort()
-                    find_idx = 0
-                    while find_idx < len(find_list):
-                        if find_list[find_idx] == find_digit:
-                            break
-                        else:
-                            find_idx += 1
-                    """
-                    put positions in list so target digit index can be used for correct user selection checking
-                    """
-                    num_pos_list = (num1_pos, num2_pos, num3_pos)
-
-                    """ Play find digit and target digit sounds and display digits"""
-                    FIND_DIGIT.play()
-                    while pygame.mixer.get_busy():
-                        pygame.event.clear()
-                    self.play_number(find_digit)
-                    self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
-                    self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
-                    self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
-
-                    while not found:
-                        mouse_pos = pygame.mouse.get_pos()
-                        for selection in pygame.event.get():
-                            if (num1_pos[0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
-                                    num1_pos[0] - NUM_DISPLAY_WIDTH / 2) and (
-                                    num1_pos[1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
-                                    num1_pos[1] - NUM_DISPLAY_HEIGHT / 2):
-                                self.higl_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
-                            else:
-                                self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
-
-                            if (num2_pos[0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
-                                    num2_pos[0] - NUM_DISPLAY_WIDTH / 2) and (
-                                    num2_pos[1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
-                                    num2_pos[1] - NUM_DISPLAY_HEIGHT / 2):
-                                self.higl_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
-                            else:
-                                self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
-
-                            if (num3_pos[0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
-                                    num3_pos[0] - NUM_DISPLAY_WIDTH / 2) and (
-                                    num3_pos[1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
-                                    num3_pos[1] - NUM_DISPLAY_HEIGHT / 2):
-                                self.higl_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
-                            else:
-                                self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
-
-                            if selection.type == pygame.QUIT or (selection.type == pygame.KEYDOWN and selection.key == QUIT):
-                                pygame.quit()
-                                sys.exit()
-                            if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
-                                if (num_pos_list[find_idx][0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
-                                        num_pos_list[find_idx][0] - NUM_DISPLAY_WIDTH / 2) and (
-                                        num_pos_list[find_idx][1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
-                                        num_pos_list[find_idx][1] - NUM_DISPLAY_HEIGHT / 2):
-                                    VERY_GOOD.play()
-                                    while pygame.mixer.get_busy():
-                                        self.clock.tick(1000)
-                                        pygame.event.clear()
-                                    FOUND_DIGIT.play()
-                                    while pygame.mixer.get_busy():
-                                        self.clock.tick(1000)
-                                        pygame.event.clear()
-                                    self.play_number(find_digit)
-                                    found = True
-                                else:
-                                    NOT_RIGHT.play()
-                                    while pygame.mixer.get_busy():
-                                        self.clock.tick(1000)
-                                        pygame.event.clear()
-                                    TRY_AGAIN.play()
-                                    while pygame.mixer.get_busy():
-                                        self.clock.tick(1000)
-                                        pygame.event.clear()
-                                    FIND_DIGIT.play()
-                                    while pygame.mixer.get_busy():
-                                        self.clock.tick(1000)
-                                        pygame.event.clear()
-                                    self.play_number(find_digit)
-
-
-
+                    self.learn_digits_stage2()
 
     def learn_digits_update(self):
-        if self.play:
-            BEGIN_DIGITS.play()
-            while pygame.mixer.get_busy():
-                self.clock.tick(10)
-            self.play = False
+        pass
 
     def learn_digits_draw(self, is_img=False, index=None):
         self.screen.fill(K_PURPLE)
-        # self.screen.blit(self.surface_1, (SCREEN_WIDTH / 2 - NUM_DISPLAY_WIDTH / 2,
-        #                                   SCREEN_HEIGHT / 2 - NUM_DISPLAY_HEIGHT / 2))
+        if self.display_score:
+            draw_text("Score = " + str(self.score), self.screen, [75, 75], 20, BLACK, ALL_FONT)
         draw_text("Let's learn digits", self.screen, [
             SCREEN_WIDTH // 2, 40], START_TEXT_SIZE + 10, K_YELLOW, ALL_FONT, centered=True)
         draw_text("Press SPACE to continue.", self.screen, [
             SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150], START_TEXT_SIZE - 10, K_YELLOW, ALL_FONT, centered=True)
-        pygame.display.flip()
+        pygame.display.update()
+
+    def learn_digits_load(self):
+        self.play_clip(BEGIN_DIGITS)
+        self.load_state = False
+
+    def learn_digits_stage0(self):
+        self.play_clip(NUMS_FROM_DIGITS)
+        self.play_clip(TEN_DIGITS)
+        self.play_digits()
+        self.learn_digits_stage += 1
+
+    def learn_digits_stage1(self):
+        self.play_clip(SAY_TOGETHER)
+        self.play_digits(TWO_DELAY)
+        self.learn_digits_stage += 1
+        self.display_score = True
+
+    def learn_digits_stage2(self):
+        while self.score < 10:
+            self.learn_digits_draw()
+            found = False
+            find_digit = random.randint(0, 9)
+            rand1 = random.randint(0, 9)
+            rand2 = random.randint(0, 9)
+
+            # adjust random numbers so they aren't the same as target digit
+            while rand1 == find_digit:
+                rand1 = random.randint(0, 9)
+
+            while rand2 == find_digit:
+                rand2 = random.randint(0, 9)
+
+            # create number display positions
+            num1_pos = (SCREEN_CENTER[0] / 2, SCREEN_CENTER[1])
+            num2_pos = (SCREEN_CENTER[0], SCREEN_CENTER[1])
+            num3_pos = (((SCREEN_CENTER[0] / 2) + SCREEN_CENTER[0]), SCREEN_CENTER[1])
+            """
+            put numbers in list to display in numerical order.
+            find index of target digit to use when checking for correct user selection
+            """
+            find_list = [find_digit, rand1, rand2]
+            find_list.sort()
+            find_idx = 0
+            while find_idx < len(find_list):
+                if find_list[find_idx] == find_digit:
+                    break
+                else:
+                    find_idx += 1
+            """
+            put positions in list so target digit index can be used for correct user selection checking
+            """
+            num_pos_list = (num1_pos, num2_pos, num3_pos)
+
+            """ Play find digit and target digit sounds and display digits"""
+            self.play_clip(FIND_DIGIT)
+            # FIND_DIGIT.play()
+            # while pygame.mixer.get_busy():
+            #     pygame.event.clear()
+            self.play_number(find_digit)
+            self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
+            self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
+            self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
+
+            while not found:
+                mouse_pos = pygame.mouse.get_pos()
+                for selection in pygame.event.get():
+                    if (num1_pos[0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
+                            num1_pos[0] - NUM_DISPLAY_WIDTH / 2) and (
+                            num1_pos[1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
+                            num1_pos[1] - NUM_DISPLAY_HEIGHT / 2):
+                        self.higl_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
+                    else:
+                        self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
+
+                    if (num2_pos[0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
+                            num2_pos[0] - NUM_DISPLAY_WIDTH / 2) and (
+                            num2_pos[1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
+                            num2_pos[1] - NUM_DISPLAY_HEIGHT / 2):
+                        self.higl_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
+                    else:
+                        self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
+
+                    if (num3_pos[0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
+                            num3_pos[0] - NUM_DISPLAY_WIDTH / 2) and (
+                            num3_pos[1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
+                            num3_pos[1] - NUM_DISPLAY_HEIGHT / 2):
+                        self.higl_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
+                    else:
+                        self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
+
+                    if selection.type == pygame.QUIT or (selection.type == pygame.KEYDOWN and selection.key == QUIT):
+                        pygame.quit()
+                        sys.exit()
+                    if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                        if (num_pos_list[find_idx][0] + NUM_DISPLAY_WIDTH / 2) >= mouse_pos[0] >= (
+                                num_pos_list[find_idx][0] - NUM_DISPLAY_WIDTH / 2) and (
+                                num_pos_list[find_idx][1] + NUM_DISPLAY_HEIGHT / 2) >= mouse_pos[1] >= (
+                                num_pos_list[find_idx][1] - NUM_DISPLAY_HEIGHT / 2):
+                            self.play_clip(VERY_GOOD)
+                            self.play_clip(FOUND_DIGIT)
+                            self.play_number(find_digit)
+                            found = True
+                            self.incorrect_find = 0
+                            self.score += 1
+                            if self.score >= 10:
+                                self.state = ZERO_TO_TEN
+                                self.load_state = True
+                        else:
+                            self.incorrect_find += 1
+                            if self.incorrect_find <= 1:
+                                self.play_clip(NOT_RIGHT)
+                                self.play_clip(TRY_AGAIN)
+                                self.play_clip(FIND_DIGIT)
+                                self.play_number(find_digit)
+                            elif self.incorrect_find >= 2:
+                                self.play_clip(NOT_RIGHT)
+                                self.play_clip(THE_NUMBER)
+                                self.play_number(find_digit)
+                                self.play_clip(LOOKS_LIKE)
+                                self.learn_digits_draw()
+                                self.reg_num_imgs.draw(self.screen, find_digit, SCREEN_CENTER[0], SCREEN_CENTER[1])
+                                self.play_clip(FIND_DIGIT)
+                                self.play_number(find_digit)
+                                self.learn_digits_draw()
+                                self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1])
+                                self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1])
+                                self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1])
 
     ############ ZERO TO TEN FUNCTIONS #########
     def zero_ten_events(self):
@@ -260,6 +279,45 @@ class App:
     def zero_ten_load(self):
         pass
 
+    ################################## LEARN ALPHABET FUNCTIONS ###########################
+    def learn_alphabet_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                self.running = False
+            if event.type == KEYDOWN and event.key == pygame.K_SPACE:
+                self.play_alphabet_song()
+
+    def learn_alphabet_update(self):
+        pass
+
+    def learn_alphabet_draw(self):
+        self.screen.fill(K_PURPLE)
+        if self.display_score:
+            draw_text("Score = " + str(self.score), self.screen, [75, 75], 20, BLACK, ALL_FONT)
+        draw_text("Let's learn the alphabet!", self.screen, [
+            SCREEN_WIDTH // 2, 40], START_TEXT_SIZE, K_YELLOW, ALL_FONT, centered=True)
+        draw_text("Press SPACE to continue.", self.screen, [
+            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150], START_TEXT_SIZE - 10, K_YELLOW, ALL_FONT, centered=True)
+        pygame.display.update()
+
+    def learn_alphabet_load(self):
+        self.play_clip(LEARN_ALPHABET)
+        self.play_clip(SING_ALPHABET)
+        self.load_state = False
+
+    def play_alphabet_song(self):
+        ALPHABET_SONG.play()
+        index = 0
+        while pygame.mixer.get_busy():
+            self.higl_num_imgs.draw(self.screen, index, SCREEN_CENTER[0], SCREEN_CENTER[1])
+            pygame.time.wait(TWO_DELAY)
+            index += 1
+            for selection in pygame.event.get():
+                if selection.type == pygame.KEYDOWN and selection.key == pygame.K_ESCAPE:
+                    pygame.mixer.stop()
+                else:
+                    pygame.event.clear()
+
 
     ############# HELPER FUNCTIONS ##############
     def load(self):
@@ -267,17 +325,19 @@ class App:
         self.screen.fill(K_BLUE)
         # display start message
         draw_text('Welcome', self.screen, [
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50], START_TEXT_SIZE, K_PURPLE, ALL_FONT, centered=True)
-        draw_text("Let's learn to count!", self.screen, [
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50], START_TEXT_SIZE, K_PURPLE, ALL_FONT, centered=True)
-        draw_text("Press SPACE to get started.", self.screen, [
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150], START_TEXT_SIZE - 10, K_PURPLE, ALL_FONT, centered=True)
+            SCREEN_CENTER[0], 100], WELCOME_SIZE, K_PURPLE, ALL_FONT, centered=True)
+        self.number_button.draw()
+        self.letter_button.draw()
         pygame.display.update()
-        INTRO.play()
-        while pygame.mixer.get_busy():
-            self.clock.tick(10)
-            # ignore any events while playing sound
-            pygame.event.clear()
+        self.play_clip(NUMS_OR_LETTERS)
+        self.play_clip(FOR_NUMS)
+        self.play_clip(CLICK)
+        self.play_clip(ORANGE_SOUND)
+        self.play_clip(BUTTON_SOUND)
+        self.play_clip(FOR_LETTERS)
+        self.play_clip(CLICK)
+        self.play_clip(GREEN_SOUND)
+        self.play_clip(BUTTON_SOUND)
 
     def play_all_num(self):
         """
@@ -317,12 +377,24 @@ class App:
                 pygame.event.clear()
             index += 1
 
-    def play_number(self, number):
+    def play_number(self, number, delay=10):
         """
         plays number sound file based on paramater
+        :param delay:
         :param number: used to select number sound file
         :return: None
         """
         numbers_list[number].play()
         while pygame.mixer.get_busy():
+            self.clock.tick(delay)
             pygame.event.clear()
+
+    def play_clip(self, clip, delay=10):
+        clip.play()
+        while pygame.mixer.get_busy():
+            self.clock.tick(delay)
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    clip.stop()
+                else:
+                    pygame.event.clear()

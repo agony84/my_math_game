@@ -5,7 +5,7 @@ from pygame.locals import *
 
 
 class NumberSprites:
-    def __init__(self, filename, frames):
+    def __init__(self, filename, frames, width, height):
         self.sheet = pygame.image.load(filename).convert_alpha()
         self.sheet_width = self.sheet.get_width()
         self.img_height = self.sheet_height = self.sheet.get_height()
@@ -13,6 +13,8 @@ class NumberSprites:
         self.num_frames = frames
         self.center_width, self.center_height = self.cellCenter = (self.img_width / 2, self.img_height / 2)
         self.images = self.splitImages()
+        self.width = width
+        self.height = height
         self.surface1 = pygame.Surface((NUM_DISPLAY_WIDTH, NUM_DISPLAY_HEIGHT))
 
     def draw(self, screen, index, x, y):
@@ -24,8 +26,8 @@ class NumberSprites:
             self.surface1.fill(K_PURPLE)
             self.surface1.blit(self.sheet, (NUM_DISPLAY_WIDTH / 2 - self.center_width,
                                             NUM_DISPLAY_HEIGHT / 2 - self.center_height), self.images[index])
-            screen.blit(self.surface1, (x - NUM_DISPLAY_WIDTH / 2,
-                                        y - NUM_DISPLAY_HEIGHT / 2))
+            surface2 = pygame.transform.smoothscale(self.surface1, (self.width, self.height))
+            screen.blit(surface2, (x - self.width / 2, y - self.height / 2))
             # surface.blit(self.sheet, (x - self.center_width, y - self.center_height), self.images[index])
             pygame.display.update()
 

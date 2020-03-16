@@ -41,8 +41,8 @@ class Button:
         if self.text != '':
             font = pygame.font.SysFont(ALL_FONT, 14)
             text = font.render(self.text, 1, BLACK)
-            self.surface.blit(text, (self.x + (self.width / 2 - text.get_width() / 2),
-                                     self.y + (self.height / 2 - text.get_height() / 2)))
+            self.surface.fill(self.color)
+            self.surface.blit(text, (self.width / 2 - (text.get_width() / 2), self.height / 2 - (text.get_height() / 2)))
             self.screen.blit(self.surface, (self.x, self.y))
 
         if self.number is not None:
