@@ -29,13 +29,20 @@ FPS = 60
 ##################### IMAGE SETTINGS ####################
 
 NUM_COLS = 10
-NUM_DISPLAY_WIDTH = 50
-NUM_DISPLAY_HEIGHT = 50
+NUM_DISPLAY_WIDTH = 100
+NUM_DISPLAY_HEIGHT = 100
+ABC_COLS = 26
+ABC_WIDTH = 100
+ABC_HEIGHT = 100
 
 #################### BUTTON SETTINGS ###################
 
 BUTTON_WIDTH = 100
 BUTTON_HEIGHT = 20
+SKIP_WIDTH = 75
+SKIP_HEIGHT = 75
+SKIP_X = SCREEN_WIDTH - (SKIP_WIDTH + 20)
+SKIP_Y = SCREEN_HEIGHT - (SKIP_HEIGHT + 20)
 
 ########## COLOR SETTINGS ########################
 
@@ -63,6 +70,9 @@ K_BLUE = (55, 182, 246)
 WELCOME_SIZE = 60
 START_TEXT_SIZE = 30
 ALL_FONT = "goudystout"
+SMALL_TEXT_SIZE = 14
+MEDIUM_TEXT_SIZE = 20
+LARGE_TEXT_SIZE = 28
 
 ##################### GAME STATES ########################
 START = 'start'
@@ -71,6 +81,8 @@ NUM_LEVEL_SEL = 'select num level'
 LEARN_DIGITS = 'learn digits'
 ZERO_TO_TEN = 'zero to ten'
 TEN_TO_TWENTY = 'ten to twenty'
+NUMS_LANDING = 'number landing screen'
+ALPHABET_LANDING = 'alphabet landing screen'
 
 ###################### PRINT MESSAGES ##########################
 START_MESSAGE = 'Welcom to '

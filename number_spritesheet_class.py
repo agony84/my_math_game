@@ -1,33 +1,42 @@
 import pygame
 from settings import *
+from images_paths import *
 import glob
-from pygame.locals import *
 
 
 class NumberSprites:
-    def __init__(self, filename, frames, width, height):
-        self.sheet = pygame.image.load(filename).convert_alpha()
+    def __init__(self, image, frames, surf_width, surf_height):
+        self.sheet = pygame.image.load(image).convert_alpha()
         self.sheet_width = self.sheet.get_width()
         self.img_height = self.sheet_height = self.sheet.get_height()
         self.img_width = self.sheet_width / frames
         self.num_frames = frames
         self.center_width, self.center_height = self.cellCenter = (self.img_width / 2, self.img_height / 2)
         self.images = self.splitImages()
-        self.width = width
-        self.height = height
-        self.surface1 = pygame.Surface((NUM_DISPLAY_WIDTH, NUM_DISPLAY_HEIGHT))
+        self.surf_width = surf_width
+        self.surf_height = surf_height
+        self.surface1 = pygame.Surface((self.img_width, self.img_height), pygame.SRCALPHA)
 
-    def draw(self, screen, index, x, y):
+    def draw(self, screen, index, x_screen, y_screen, back_color):
+        """
+
+        :param screen:
+        :param index:
+        :param x_screen: top left x pos for image display
+        :param y_screen: top left y pos for image display
+        :param back_color:
+        :return:
+        """
         if index > self.num_frames - 1:
             pass
         else:
             # self.surface_1.fill(K_PURPLE)
             # self.reg_num_imgs.draw(self.surface_1, index, NUM_DISPLAY_WIDTH / 2, NUM_DISPLAY_HEIGHT / 2)
-            self.surface1.fill(K_PURPLE)
-            self.surface1.blit(self.sheet, (NUM_DISPLAY_WIDTH / 2 - self.center_width,
-                                            NUM_DISPLAY_HEIGHT / 2 - self.center_height), self.images[index])
-            surface2 = pygame.transform.smoothscale(self.surface1, (self.width, self.height))
-            screen.blit(surface2, (x - self.width / 2, y - self.height / 2))
+            self.surface1.fill(back_color)
+            self.surface1.blit(self.sheet, (0, 0), self.images[index])
+            surface2 = pygame.transform.smoothscale(self.surface1, (self.surf_width, self.surf_height))
+            # surface3 = pygame.transform.scale(self.surface1)
+            screen.blit(surface2, (x_screen, y_screen))
             # surface.blit(self.sheet, (x - self.center_width, y - self.center_height), self.images[index])
             pygame.display.update()
 

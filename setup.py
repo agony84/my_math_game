@@ -6,6 +6,7 @@ cx_Freeze.setup(
     name="Math Game",
     options={"build_exe": {"packages": ["pygame"],
                            "include_files": [("sound_files/begin_digits.wav", "sound_files/begin_digits.wav"),
+                                             ("sound_files/you_chose.wav", "sound_files/you_chose.wav"),
                                              ("sound_files/count_0_to_10.wav", "sound_files/count_0_to_10.wav"),
                                              ("sound_files/find_number.wav", "sound_files/find_number.wav"),
                                              ("sound_files/find_the_digit.wav", "sound_files/find_the_digit.wav"),
@@ -54,8 +55,6 @@ cx_Freeze.setup(
                                              ("sound_files/numbers/eighteen.wav", "sound_files/numbers/eighteen.wav"),
                                              ("sound_files/numbers/nineteen.wav", "sound_files/numbers/nineteen.wav"),
                                              ("sound_files/numbers/twenty.wav", "sound_files/numbers/twenty.wav"),
-                                             ("images/numbers_highlight.png", "images/numbers_highlight.png"),
-                                             ("images/spritesheet_numbers_plain.png", "images/spritesheet_numbers_plain.png"),
                                              ("sound_files/alphabet/begin_sing.wav", "sound_files/alphabet/begin_sing.wav"),
                                              ("sound_files/alphabet/find_letter.wav", "sound_files/alphabet/find_letter.wav"),
                                              ("sound_files/alphabet/learn_alphabet.wav", "sound_files/alphabet/learn_alphabet.wav"),
@@ -86,7 +85,14 @@ cx_Freeze.setup(
                                              ("sound_files/alphabet/letter/w.wav", "sound_files/alphabet/letter/w.wav"),
                                              ("sound_files/alphabet/letter/x.wav", "sound_files/alphabet/letter/x.wav"),
                                              ("sound_files/alphabet/letter/y.wav", "sound_files/alphabet/letter/y.wav"),
-                                             ("sound_files/alphabet/letter/z.wav", "sound_files/alphabet/letter/z.wav")]}},
+                                             ("sound_files/alphabet/letter/z.wav", "sound_files/alphabet/letter/z.wav"),
+                                             ("images/numbers_highlight.png", "images/numbers_highlight.png"),
+                                             ("images/spritesheet_numbers_plain.png", "images/spritesheet_numbers_plain.png"),
+                                             ("images/abc.png", "images/abc.png"),
+                                             ("images/abc_highlight.png", "images/abc_highlight.png"),
+                                             ("images/abc_lower.png", "images/abc_lower.png"),
+                                             ("images/abc_lower_highlight.png", "images/abc_lower_highlight.png"),
+                                             ("images/skip_arrows.png", "images/skip_arrows.png")]}},
     executables=executables
 )
 

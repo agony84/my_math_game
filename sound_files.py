@@ -1,3 +1,6 @@
+"""
+NOTE: The abc song used in this program is copyright of freeabcsongs.com
+"""
 import pygame
 from settings import *
 
@@ -26,7 +29,7 @@ EIGHTEEN = pygame.mixer.Sound('sound_files/numbers/eighteen.wav')
 NINETEEN = pygame.mixer.Sound('sound_files/numbers/nineteen.wav')
 TWENTY = pygame.mixer.Sound('sound_files/numbers/twenty.wav')
 
-###################### INTO SOUND FILES ########################
+###################### INTRO SOUND FILES ########################
 COUNT_INTRO = pygame.mixer.Sound('sound_files/intro.wav')
 NUMS_OR_LETTERS = pygame.mixer.Sound('sound_files/numbers_or_letters.wav')
 
@@ -35,6 +38,7 @@ FOR_LETTERS = pygame.mixer.Sound('sound_files/for_letters.wav')
 FOR_NUMS = pygame.mixer.Sound('sound_files/for_numbers.wav')
 CLICK = pygame.mixer.Sound('sound_files/click_the.wav')
 BUTTON_SOUND = pygame.mixer.Sound('sound_files/button.wav')
+YOU_CHOSE = pygame.mixer.Sound('sound_files/you_chose.wav')
 
 ###################### DIGITS SOUNDS ############################
 BEGIN_DIGITS = pygame.mixer.Sound('sound_files/begin_digits.wav')
@@ -67,7 +71,7 @@ FIND_LETTER = pygame.mixer.Sound('sound_files/alphabet/find_letter.wav')
 LEARN_ALPHABET = pygame.mixer.Sound('sound_files/alphabet/learn_alphabet.wav')
 SING_ALPHABET = pygame.mixer.Sound('sound_files/alphabet/sing_alphabet.wav')
 
-######################## NUMBER SOUND FILES ########################
+######################## ALPHABET SOUND FILES ########################
 A_SOUND = pygame.mixer.Sound('sound_files/alphabet/letters/a.wav')
 B_SOUND = pygame.mixer.Sound('sound_files/alphabet/letters/b.wav')
 C_SOUND = pygame.mixer.Sound('sound_files/alphabet/letters/c.wav')
