@@ -1,6 +1,6 @@
 import pygame
 from settings import *
-from images_paths import *
+from image_paths import *
 import glob
 
 

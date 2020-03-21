@@ -15,7 +15,7 @@ pygame.init()
 
 
 class Button:
-    def __init__(self, screen, width, height, x, y, color, text='', text_size=None, border=True, image=None, number=None):
+    def __init__(self, screen, width, height, x, y, color, text='', text_size=SMALL_TEXT_SIZE, text_color=BLACK, border=True, image=None, number=None):
         self.color = color
         self.x = x
         self.y = y
@@ -30,6 +30,7 @@ class Button:
         self.number = number
         self.screen = screen
         self.text_size = text_size
+        self.text_color = text_color
 
     def update(self):
         pass
@@ -41,7 +42,7 @@ class Button:
 
         if self.text != '':
             font = pygame.font.SysFont(ALL_FONT, self.text_size)
-            text = font.render(self.text, 1, BLACK)
+            text = font.render(self.text, 1, self.text_color)
             self.surface.fill(self.color)
             self.surface.blit(text, (self.width / 2 - (text.get_width() / 2), self.height / 2 - (text.get_height() / 2)))
             self.screen.blit(self.surface, (self.x, self.y))

@@ -14,7 +14,7 @@ from settings import *
 from number_spritesheet_class import *
 from sound_files import *
 from buttons_class import *
-from images_paths import *
+from image_paths import *
 
 pygame.init()
 
@@ -41,6 +41,7 @@ class App:
         self.running = True
         # set clock
         self.clock = pygame.time.Clock()
+        # images
         self.reg_num_imgs = NumberSprites(REG_NUM_IMGS, NUM_COLS, NUM_DISPLAY_WIDTH, NUM_DISPLAY_HEIGHT)
         self.higl_num_imgs = NumberSprites(HIGH_NUM_IMGS, NUM_COLS, NUM_DISPLAY_WIDTH, NUM_DISPLAY_HEIGHT)
         self.reg_upper_abc = NumberSprites(ABC_UPPER, ABC_COLS, ABC_WIDTH, ABC_HEIGHT)
@@ -53,17 +54,27 @@ class App:
         # resources for learn_digits
         self.index = 0
         self.play = True
-        self.learn_digits_stage = 0
         self.load_state = True
         self.score = 0
         self.display_score = False
         self.incorrect_find = 0
         self.display_skip = True
-        self.number_button = Button(self.screen, 150, 50, SCREEN_CENTER[0] - (150 / 2), SCREEN_CENTER[1] - 50,
+        self.display_continue = False
+        # buttons
+        self.number_button = Button(self.screen, NUM_BUTTON_WIDTH, NUM_BUTTON_HEIGHT,
+                                    SCREEN_CENTER[0] - (NUM_BUTTON_WIDTH / 2), SCREEN_CENTER[1] - NUM_BUTTON_HEIGHT,
                                     K_ORANGE, "123's", MEDIUM_TEXT_SIZE)
-        self.letter_button = Button(self.screen, 150, 50, SCREEN_CENTER[0] - (150 / 2), SCREEN_CENTER[1] + 50,
+        self.letter_button = Button(self.screen, ABC_BUTTON_WIDTH, ABC_BUTTON_HEIGHT,
+                                    SCREEN_CENTER[0] - (ABC_BUTTON_WIDTH / 2), SCREEN_CENTER[1] + ABC_BUTTON_HEIGHT,
                                     K_GREEN, "ABC's", MEDIUM_TEXT_SIZE)
-        self.return_main = Button(self.screen, 100, 50, 50, SCREEN_HEIGHT - 150, K_YELLOW, 'Main', MEDIUM_TEXT_SIZE)
+        self.return_main = Button(self.screen, MAIN_BUTTON_WIDTH, MAIN_BUTTON_HEIGHT, MAIN_X, MAIN_Y, MAIN_BUTTON_COLOR,
+                                  'Main', SMALL_TEXT_SIZE)
+        self.menu = Button(self.screen, MAIN_BUTTON_WIDTH, MAIN_BUTTON_HEIGHT, MAIN_X, MAIN_Y, MAIN_BUTTON_COLOR,
+                           'Menu', SMALL_TEXT_SIZE)
+        self.continue_button = Button(self.screen, CONTINUE_WIDTH, CONTINUE_HEIGHT, CONTINUE_X, CONTINUE_Y,
+                                      CONTINUE_COLOR, CONTINUE_TEXT, MEDIUM_TEXT_SIZE, K_YELLOW)
+
+        # load game
         self.load()
 
     def run(self):
@@ -105,10 +116,14 @@ class App:
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                if self.number_button.x <= mouse_pos[0] <= self.number_button.x + self.number_button.width and self.number_button.y <= mouse_pos[1] <= self.number_button.y + self.number_button.height:
+                if self.number_button.x <= mouse_pos[
+                    0] <= self.number_button.x + self.number_button.width and self.number_button.y <= mouse_pos[
+                    1] <= self.number_button.y + self.number_button.height:
                     self.state = LEARN_DIGITS
                     self.load_state = True
-                if self.letter_button.x <= mouse_pos[0] <= self.letter_button.x + self.letter_button.width and self.letter_button.y <= mouse_pos[1] <= self.letter_button.y + self.letter_button.height:
+                if self.letter_button.x <= mouse_pos[
+                    0] <= self.letter_button.x + self.letter_button.width and self.letter_button.y <= mouse_pos[
+                    1] <= self.letter_button.y + self.letter_button.height:
                     self.state = LEARN_ALPHABET
                     self.load_state = True
 
@@ -131,16 +146,18 @@ class App:
 
     ############################### LEARN DIGITS FUNCTION ################################
     def learn_digits_events(self):
+        mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                if self.learn_digits_stage == 0:
-                    self.learn_digits_stage0()
-                elif self.learn_digits_stage == 1:
-                    self.learn_digits_stage1()
-                elif self.learn_digits_stage == 2:
-                    self.learn_digits_stage2()
+                self.display_continue = False
+                self.learn_digits_stage2()
+            if event.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[
+                0] >= MAIN_X and MAIN_Y + MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
+                self.state = START
+                self.display_continue = False
+                self.display_score = False
 
     def learn_digits_update(self):
         pass
@@ -155,8 +172,11 @@ class App:
             draw_text("Score = " + str(self.score), self.screen, [75, 75], 20, BLACK, ALL_FONT)
         draw_text("Let's learn digits", self.screen, [
             SCREEN_WIDTH // 2, 40], START_TEXT_SIZE + 10, K_YELLOW, ALL_FONT, centered=True)
-        draw_text("Press SPACE to continue.", self.screen, [
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150], START_TEXT_SIZE - 10, K_YELLOW, ALL_FONT, centered=True)
+        # draw_text("Press SPACE to continue.", self.screen, [
+        #     SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150], START_TEXT_SIZE - 10, K_YELLOW, ALL_FONT, centered=True)
+        if self.display_continue:
+            self.continue_button.draw()
+        self.return_main.draw()
         pygame.display.update()
 
     def learn_digits_load(self):
@@ -164,30 +184,16 @@ class App:
         play digit intro sound clips.
         :return:
         """
-        self.play_clip(BEGIN_DIGITS)
         self.load_state = False
-
-    def learn_digits_stage0(self):
-        """
-        play initial digit sound clips then advance stage
-        :return: none
-        """
+        self.play_clip(BEGIN_DIGITS)
         self.play_clip(NUMS_FROM_DIGITS)
         self.play_clip(TEN_DIGITS)
         self.play_digits()
-        self.learn_digits_stage += 1
-
-    def learn_digits_stage1(self):
-        """
-        display each number and the corresponding sound clip at a slow rate to allow user time to
-        recognize the number and say it.
-        Advance the stage
-        :return: none
-        """
         self.play_clip(SAY_TOGETHER)
         self.play_digits(TWO_DELAY)
-        self.learn_digits_stage += 1
+        self.score = 0
         self.display_score = True
+        self.display_continue = True
 
     def learn_digits_stage2(self):
         """
@@ -250,6 +256,7 @@ class App:
             self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1], K_PURPLE)
             self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1], K_PURPLE)
             self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE)
+            self.display_skip = False
 
             while not found:
                 mouse_pos = pygame.mouse.get_pos()
@@ -275,9 +282,16 @@ class App:
                     if selection.type == pygame.QUIT:
                         pygame.quit()
                         sys.exit()
+                    # Check for return to main button click
+                    if selection.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[
+                        0] >= MAIN_X and MAIN_Y + MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
+                        self.state = START
+                        self.display_score = False
+                        self.display_continue = False
+                        self.run()
                     if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
                         if (num_pos_list[find_idx][0] + NUM_DISPLAY_WIDTH) >= mouse_pos[0] >= (
-                                num_pos_list[find_idx][0]) and (num_pos_list[find_idx][1] + NUM_DISPLAY_HEIGHT)\
+                                num_pos_list[find_idx][0]) and (num_pos_list[find_idx][1] + NUM_DISPLAY_HEIGHT) \
                                 >= mouse_pos[1] >= (num_pos_list[find_idx][1]):
                             self.play_clip(VERY_GOOD)
                             self.play_clip(FOUND_DIGIT)
@@ -290,7 +304,7 @@ class App:
                                 self.load_state = True
 
                         elif (num_pos_list[num1_idx][0] + NUM_DISPLAY_WIDTH) >= mouse_pos[0] >= (
-                                num_pos_list[num1_idx][0]) and (num_pos_list[num1_idx][1] + NUM_DISPLAY_HEIGHT)\
+                                num_pos_list[num1_idx][0]) and (num_pos_list[num1_idx][1] + NUM_DISPLAY_HEIGHT) \
                                 >= mouse_pos[1] >= (num_pos_list[num1_idx][1]):
                             self.incorrect_find += 1
                             if self.incorrect_find <= 1:
@@ -318,7 +332,7 @@ class App:
                                 self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE)
 
                         elif (num_pos_list[num2_idx][0] + NUM_DISPLAY_WIDTH) >= mouse_pos[0] >= (
-                                num_pos_list[num2_idx][0]) and (num_pos_list[num2_idx][1] + NUM_DISPLAY_HEIGHT)\
+                                num_pos_list[num2_idx][0]) and (num_pos_list[num2_idx][1] + NUM_DISPLAY_HEIGHT) \
                                 >= mouse_pos[1] >= (num_pos_list[num2_idx][1]):
                             self.incorrect_find += 1
                             if self.incorrect_find <= 1:
@@ -364,11 +378,19 @@ class App:
 
     ################################## LEARN ALPHABET FUNCTIONS ###########################
     def learn_alphabet_events(self):
+        mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                self.display_continue = False
+                self.learn_alphabet_draw()
                 self.play_alphabet_song()
+            if event.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[
+                0] >= MAIN_X and MAIN_Y + MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
+                self.state = START
+                self.display_continue = False
+                self.display_score = False
 
     def learn_alphabet_update(self):
         pass
@@ -383,8 +405,11 @@ class App:
             draw_text("Score = " + str(self.score), self.screen, [75, 75], 20, BLACK, ALL_FONT)
         draw_text("Let's learn the alphabet!", self.screen, [
             SCREEN_WIDTH // 2, 40], START_TEXT_SIZE, K_YELLOW, ALL_FONT, centered=True)
-        draw_text("Press SPACE to continue.", self.screen, [
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150], START_TEXT_SIZE - 10, K_YELLOW, ALL_FONT, centered=True)
+        # draw_text("Press SPACE to continue.", self.screen, [
+        #     SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150], START_TEXT_SIZE - 10, K_YELLOW, ALL_FONT, centered=True)
+        if self.display_continue:
+            self.continue_button.draw()
+        self.return_main.draw()
         pygame.display.update()
 
     def learn_alphabet_load(self):
@@ -395,24 +420,37 @@ class App:
         self.play_clip(LEARN_ALPHABET)
         self.play_clip(SING_ALPHABET)
         self.load_state = False
+        self.display_continue = True
 
     def play_alphabet_song(self):
         """
         play the alphabet song sound clip and display corresponding letters at appropriate time
         :return: none
         """
-        ALPHABET_SONG.play()
         index = 0
+        userevent = 1
+        count = 0
+        ALPHABET_SONG.set_volume(0.2)
+        ALPHABET_SONG.play()
+        pygame.time.set_timer(pygame.USEREVENT, ABC_DELAYS[index])
+        self.skip_img.draw(self.screen, 0, SKIP_X, SKIP_Y, SKIP_COLOR)
         while pygame.mixer.get_busy():
-            self.skip_img.draw(self.screen, 0, SKIP_X, SKIP_Y, K_ORANGE)
             mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if (SKIP_X + SKIP_WIDTH >= mouse_pos[0] >= SKIP_X) and (
                             SKIP_Y + SKIP_HEIGHT >= mouse_pos[1] >= SKIP_Y):
                         ALPHABET_SONG.stop()
+                if event.type == pygame.USEREVENT:
+                    self.reg_upper_abc.draw(self.screen, index, SCREEN_CENTER[0] - (ABC_BUTTON_WIDTH / 2),
+                                            SCREEN_CENTER[1] - (ABC_BUTTON_HEIGHT / 2), K_PURPLE)
+                    if index <= len(ABC_DELAYS) - 2:
+                        index += 1
+                        pygame.time.set_timer(pygame.USEREVENT, ABC_DELAYS[index])
                 else:
                     pygame.event.clear()
+
+        self.display_continue = True
 
     ######################## END LEARN ALPHABET ######################
 
@@ -462,9 +500,13 @@ class App:
             numbers_list[index].play()
             while pygame.mixer.get_busy():
                 pygame.time.delay(delay)
+                mouse_pos = pygame.mouse.get_pos()
                 for event in pygame.event.get():
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                        index = 10
+                    if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                        if (SKIP_X + SKIP_WIDTH >= mouse_pos[0] >= SKIP_X) and (
+                                SKIP_Y + SKIP_HEIGHT >= mouse_pos[1] >= SKIP_Y):
+                            index = 10
+                            self.display_skip = False
                     else:
                         pygame.event.clear()
             index += 1
@@ -504,12 +546,13 @@ class App:
         """
         clip.play()
         while pygame.mixer.get_busy():
-            self.skip_img.draw(self.screen, 0, SKIP_X, SKIP_Y, K_ORANGE)
+            self.skip_img.draw(self.screen, 0, SKIP_X, SKIP_Y, SKIP_COLOR)
             mouse_pos = pygame.mouse.get_pos()
             self.clock.tick(delay)
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if (SKIP_X + SKIP_WIDTH >= mouse_pos[0] >= SKIP_X) and (SKIP_Y + SKIP_HEIGHT >= mouse_pos[1] >= SKIP_Y):
+                    if (SKIP_X + SKIP_WIDTH >= mouse_pos[0] >= SKIP_X) and (
+                            SKIP_Y + SKIP_HEIGHT >= mouse_pos[1] >= SKIP_Y):
                         clip.stop()
                 else:
                     pygame.event.clear()
