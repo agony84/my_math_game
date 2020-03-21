@@ -70,6 +70,9 @@ BEGIN_SING = pygame.mixer.Sound('sound_files/alphabet/begin_sing.wav')
 FIND_LETTER = pygame.mixer.Sound('sound_files/alphabet/find_letter.wav')
 LEARN_ALPHABET = pygame.mixer.Sound('sound_files/alphabet/learn_alphabet.wav')
 SING_ALPHABET = pygame.mixer.Sound('sound_files/alphabet/sing_alphabet.wav')
+FOUND_LETTER = pygame.mixer.Sound('sound_files/alphabet/found_letter.wav')
+THE_LETTER = pygame.mixer.Sound('sound_files/alphabet/the_letter.wav')
+LEARN_LOWER_CASE = pygame.mixer.Sound('sound_files/alphabet/learn_lower_abc.wav')
 
 ######################## ALPHABET SOUND FILES ########################
 A_SOUND = pygame.mixer.Sound('sound_files/alphabet/letters/a.wav')

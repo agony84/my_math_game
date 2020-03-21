@@ -1,6 +1,6 @@
 """
 Author: John Kear
-Version: 1.0
+Version: 0.0.1
 Date: 2/23/2020
 
 Description:
@@ -37,6 +37,7 @@ class App:
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         # set game state
         self.state = START
+        self.stage = 0
         # set running
         self.running = True
         # set clock
@@ -383,9 +384,32 @@ class App:
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                self.display_continue = False
-                self.learn_alphabet_draw()
-                self.play_alphabet_song()
+                if self.stage == 0:
+                    self.display_continue = False
+                    self.learn_alphabet_draw()
+                    self.play_alphabet_song(self.reg_upper_abc)
+                    self.stage += 1
+                    self.display_score = True
+                elif self.stage == 1:
+                    self.display_continue = False
+                    self.learn_alphabet_draw()
+                    self.learn_alphabet_find(self.reg_upper_abc, self.highl_upper_abc)
+                    self.stage += 1
+                    self.display_continue = True
+                elif self.stage == 2:
+                    self.display_continue = False
+                    self.learn_alphabet_draw()
+                    self.play_clip(LEARN_LOWER_CASE)
+                    self.play_clip(SING_ALPHABET)
+                    self.play_clip(BEGIN_SING)
+                    self.play_alphabet_song(self.reg_lower_abc)
+                    self.stage += 1
+                    self.display_score = True
+                elif self.stage == 3:
+                    self.display_continue = False
+                    self.learn_alphabet_draw()
+                    self.learn_alphabet_find(self.reg_lower_abc, self.highl_lower_abc)
+                    self.display_continue = True
             if event.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[
                 0] >= MAIN_X and MAIN_Y + MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
                 self.state = START
@@ -422,7 +446,7 @@ class App:
         self.load_state = False
         self.display_continue = True
 
-    def play_alphabet_song(self):
+    def play_alphabet_song(self, image):
         """
         play the alphabet song sound clip and display corresponding letters at appropriate time
         :return: none
@@ -442,7 +466,7 @@ class App:
                             SKIP_Y + SKIP_HEIGHT >= mouse_pos[1] >= SKIP_Y):
                         ALPHABET_SONG.stop()
                 if event.type == pygame.USEREVENT:
-                    self.reg_upper_abc.draw(self.screen, index, SCREEN_CENTER[0] - (ABC_BUTTON_WIDTH / 2),
+                    image.draw(self.screen, index, SCREEN_CENTER[0] - (ABC_BUTTON_WIDTH / 2),
                                             SCREEN_CENTER[1] - (ABC_BUTTON_HEIGHT / 2), K_PURPLE)
                     if index <= len(ABC_DELAYS) - 2:
                         index += 1
@@ -451,6 +475,165 @@ class App:
                     pygame.event.clear()
 
         self.display_continue = True
+
+    def learn_alphabet_find(self, reg_image, hi_image):
+        while self.score < 10:
+            self.learn_alphabet_draw()
+            found = False
+            find_letter = random.randint(0, 25)
+            rand1 = random.randint(0, 25)
+            rand2 = random.randint(0, 25)
+
+            # adjust random numbers so they aren't the same as target digit
+            while rand1 == find_letter:
+                rand1 = random.randint(0, 25)
+
+            while rand2 == find_letter:
+                rand2 = random.randint(0, 25)
+
+            # create number display positions
+            letter1_pos = ((SCREEN_CENTER[0] / 2) - (ABC_WIDTH / 2), SCREEN_CENTER[1] - (ABC_HEIGHT / 2))
+            letter2_pos = (SCREEN_CENTER[0] - (ABC_WIDTH / 2), SCREEN_CENTER[1] - (ABC_HEIGHT / 2))
+            letter3_pos = (((SCREEN_CENTER[0] / 2) + SCREEN_CENTER[0]) - (ABC_WIDTH / 2),
+                           SCREEN_CENTER[1] - (ABC_HEIGHT / 2))
+            """
+            put numbers in list to display in numerical order.
+            find index of target digit to use when checking for correct user selection
+            """
+            find_list = [find_letter, rand1, rand2]
+            find_list.sort()
+            find_idx = 0
+            letter1_idx = 0
+            letter2_idx = 0
+            i = 0
+            while i < len(find_list):
+                if find_list[i] == find_letter:
+                    find_idx = i
+                    i += 1
+                elif find_list[i] == rand1:
+                    letter1_idx = i
+                    i += 1
+                elif find_list[i] == rand2:
+                    letter2_idx = i
+                    i += 1
+            """
+            put positions in list so target digit index can be used for correct user selection checking
+            """
+            letter_pos_list = (letter1_pos, letter2_pos, letter3_pos)
+
+            """ Play find digit and target digit sounds and display digits"""
+            self.play_clip(FIND_LETTER)
+            # FIND_DIGIT.play()
+            # while pygame.mixer.get_busy():
+            #     pygame.event.clear()
+            self.play_letter(find_letter)
+            reg_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE)
+            reg_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE)
+            reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE)
+            self.display_skip = False
+
+            while not found:
+                mouse_pos = pygame.mouse.get_pos()
+                for selection in pygame.event.get():
+                    if ((letter1_pos[0] + ABC_WIDTH) >= mouse_pos[0] >= (
+                            letter1_pos[0])) and (
+                            (letter1_pos[1] + ABC_HEIGHT) >= mouse_pos[1] >= (letter1_pos[1])):
+                        hi_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE)
+                    else:
+                        reg_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE)
+
+                    if ((letter2_pos[0] + ABC_WIDTH) >= mouse_pos[0] >= (letter2_pos[0])) and (
+                            letter2_pos[1] + ABC_HEIGHT) >= mouse_pos[1] >= (letter2_pos[1]):
+                        hi_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE)
+                    else:
+                        reg_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE)
+
+                    if (letter3_pos[0] + ABC_WIDTH) >= mouse_pos[0] >= (letter3_pos[0]) and (
+                            letter3_pos[1] + ABC_HEIGHT) >= mouse_pos[1] >= (letter3_pos[1]):
+                        hi_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE)
+                    else:
+                        reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE)
+
+                    if selection.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    # Check for return to main button click
+                    if selection.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[
+                        0] >= MAIN_X and MAIN_Y + MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
+                        self.state = START
+                        self.display_score = False
+                        self.display_continue = False
+                        self.run()
+                    if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                        if (letter_pos_list[find_idx][0] + ABC_WIDTH) >= mouse_pos[0] >= (
+                                letter_pos_list[find_idx][0]) and (letter_pos_list[find_idx][1] + ABC_HEIGHT) \
+                                >= mouse_pos[1] >= (letter_pos_list[find_idx][1]):
+                            self.play_clip(VERY_GOOD)
+                            self.play_clip(FOUND_LETTER)
+                            self.play_letter(find_letter)
+                            found = True
+                            self.incorrect_find = 0
+                            self.score += 1
+                            # if self.score >= 10:
+                            #     self.state = ZERO_TO_TEN
+                            #     self.load_state = True
+
+                        elif (letter_pos_list[letter1_idx][0] + ABC_WIDTH) >= mouse_pos[0] >= (
+                                letter_pos_list[letter1_idx][0]) and (letter_pos_list[letter1_idx][1] + ABC_HEIGHT) \
+                                >= mouse_pos[1] >= (letter_pos_list[letter1_idx][1]):
+                            self.incorrect_find += 1
+                            if self.incorrect_find <= 1:
+                                self.play_clip(NOT_RIGHT)
+                                self.play_clip(YOU_CHOSE)
+                                self.play_letter(rand1)
+                                self.play_clip(TRY_AGAIN)
+                                self.play_clip(FIND_LETTER)
+                                self.play_letter(find_letter)
+                            elif self.incorrect_find >= 2:
+                                self.play_clip(NOT_RIGHT)
+                                self.play_clip(YOU_CHOSE)
+                                self.play_letter(rand1)
+                                self.play_clip(THE_LETTER)
+                                self.play_letter(find_letter)
+                                self.play_clip(LOOKS_LIKE)
+                                self.learn_alphabet_draw()
+                                reg_image.draw(self.screen, find_letter, SCREEN_CENTER[0] - (
+                                        ABC_WIDTH / 2), SCREEN_CENTER[1] - (ABC_HEIGHT / 2), K_PURPLE)
+                                self.play_clip(FIND_LETTER)
+                                self.play_letter(find_letter)
+                                self.learn_alphabet_draw()
+                                reg_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE)
+                                reg_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE)
+                                reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE)
+
+                        elif (letter_pos_list[letter2_idx][0] + ABC_WIDTH) >= mouse_pos[0] >= (
+                                letter_pos_list[letter2_idx][0]) and (letter_pos_list[letter2_idx][1] + ABC_HEIGHT) \
+                                >= mouse_pos[1] >= (letter_pos_list[letter2_idx][1]):
+                            self.incorrect_find += 1
+                            if self.incorrect_find <= 1:
+                                self.play_clip(NOT_RIGHT)
+                                self.play_clip(YOU_CHOSE)
+                                self.play_letter(rand2)
+                                self.play_clip(TRY_AGAIN)
+                                self.play_clip(FIND_LETTER)
+                                self.play_letter(find_letter)
+                            elif self.incorrect_find >= 2:
+                                self.play_clip(NOT_RIGHT)
+                                self.play_clip(YOU_CHOSE)
+                                self.play_letter(rand2)
+                                self.play_clip(THE_LETTER)
+                                self.play_letter(find_letter)
+                                self.play_clip(LOOKS_LIKE)
+                                self.learn_alphabet_draw()
+                                reg_image.draw(self.screen, find_letter, SCREEN_CENTER[0] - (
+                                        ABC_WIDTH / 2), SCREEN_CENTER[1] - (ABC_HEIGHT / 2), K_PURPLE)
+                                self.play_clip(FIND_LETTER)
+                                self.play_letter(find_letter)
+                                self.learn_alphabet_draw()
+                                reg_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE)
+                                reg_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE)
+                                reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE)
+        self.score = 0
 
     ######################## END LEARN ALPHABET ######################
 
@@ -556,3 +739,9 @@ class App:
                         clip.stop()
                 else:
                     pygame.event.clear()
+
+    def play_letter(self, index, delay=0):
+        letter_list[index].play();
+        while pygame.mixer.get_busy():
+            self.clock.tick(delay)
+            pygame.event.clear()
