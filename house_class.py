@@ -20,35 +20,37 @@ class House:
         self.path = False
         self.pathFile = PATH_CONCRETE
         self.pathImage = pygame.image.load(self.pathFile).convert_alpha()
-        self.houseGarage = False
+        self.garage = False
         self.garageDoorFile = GARAGE_DOOR_DEFAULT_WHITE
         self.garageDoorImage = pygame.image.load(self.garageDoorFile).convert_alpha()
-        self.houseGrass = False
+        self.grass = False
         self.grassFile = GRASS_REG
         self.grassImage = pygame.image.load(self.grassFile).convert_alpha()
-        self.houseFlora = False
+        self.flora = False
         self.floraFile = DAISIES
         self.floraImage = pygame.image.load(self.floraFile).convert_alpha()
         self.surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.pos = (0, 0)
 
-    def draw(self, button):
+    def draw(self, image, index, x_pos, y_pos, back_color=K_ORANGE, button=None):
         self.update()
         self.screen.blit(self.backgroundImage, self.pos)
         self.screen.blit(self.houseImage, self.pos)
         self.screen.blit(self.windowImage, self.pos)
         self.screen.blit(self.doorImage, self.pos)
-        if self.houseGrass:
+        if self.grass:
             self.screen.blit(self.grassImage, self.pos)
-        if self.houseGarage:
+        if self.garage:
             self.screen.blit(self.garageDoorImage)
         if self.hedge:
             self.screen.blit(self.hedgeImage, self.pos)
-        if self.houseFlora:
-            self.screen.blit(self.houseFlora, self.pos)
+        if self.flora:
+            self.screen.blit(self.flora, self.pos)
         if self.path:
             self.screen.blit(self.pathImage, self.pos)
-        button.draw()
+        if button:
+            button.draw()
+        image.draw(self.screen, index, x_pos, y_pos, back_color)
         pygame.display.update()
 
     def update(self):

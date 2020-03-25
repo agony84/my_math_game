@@ -87,6 +87,9 @@ class App:
                                   MAIN_BUTTON_COLOR, "Save", SMALL_TEXT_SIZE)
         self.load_button = Button(self.screen, MAIN_BUTTON_WIDTH, MAIN_BUTTON_HEIGHT, MAIN_X, MAIN_Y - 100,
                                   MAIN_BUTTON_COLOR, "Load", SMALL_TEXT_SIZE)
+        self.upgrades_button = Button(self.screen, UPGRADE_WIDTH, UPGRADE_HEIGHT, UPGRADE_X, UPGRADE_Y, K_ORANGE,
+                                      'Upgrades', SMALL_TEXT_SIZE)
+
         self.player_house = House(self.screen)
         # load game
         self.load()
@@ -139,8 +142,8 @@ class App:
                 self.running = False
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 if self.number_button.x <= mouse_pos[
-                    0] <= self.number_button.x + self.number_button.width and self.number_button.y <= mouse_pos[
-                    1] <= self.number_button.y + self.number_button.height:
+                    0] <= self.number_button.x + self.number_button.width and self.number_button.y <= \
+                        mouse_pos[1] <= self.number_button.y + self.number_button.height:
                     self.state = LEARN_DIGITS
                     self.load_state = True
                 if self.letter_button.x <= mouse_pos[
@@ -151,50 +154,95 @@ class App:
                 if self.save_button.x <= mouse_pos[
                     0] <= self.save_button.x + self.save_button.width and self.save_button.y <= mouse_pos[
                     1] <= self.save_button.y + self.save_button.height:
-                    shelfFile = shelve.open(SAVE_FILE, writeback=True)
-                    shelfFile['saved_data'] = self.player_house.houseType
-                        # self.player_house.houseType,
-                        # self.player_house.houseWindow,
-                        # self.player_house.houseColor,
-                        # self.player_house.houseDoor,
-                        # self.player_house.houseDoorColor,
-                        # self.player_house.houseHedge,
-                        # self.player_house.houseHedgeType,
-                        # self.player_house.housePath,
-                        # self.player_house.housePathType,
-                        # self.player_house.houseGarage,
-                        # self.player_house.houseGarageDoorType,
-                        # self.player_house.houseGarageDoorColor,
-                        # self.player_house.houseGrass,
-                        # self.player_house.houseFlora,
-                        # self.player_house.houseFloraType
-                    shelfFile.close()
+                    selected = False
+                    menu_screen = pygame.Surface(SAVE_SIZE)
+                    to_save = Button(menu_screen, SAVE_SCREEN_WIDTH, 50, 0, 0, WHITE,
+                                     'Are you sure you want to save?')
+                    ok_button = Button(menu_screen, OK_WIDTH, OK_HEIGHT, OK_X, OK_Y, GREY, 'OK')
+                    cancel_button = Button(menu_screen, CANCEL_WIDTH, CANCEL_HEIGHT, CANCEL_X, CANCEL_Y, GREY, 'CANCEL')
+
+                    while not selected:
+                        select_pos = pygame.mouse.get_pos()
+                        menu_screen.fill(WHITE)
+                        to_save.draw()
+                        ok_button.draw()
+                        cancel_button.draw()
+                        to_save.draw()
+                        self.screen.blit(menu_screen, (0, 0))
+                        pygame.display.update()
+                        for choice in pygame.event.get():
+                            if choice.type == pygame.MOUSEBUTTONUP and choice.button == 1:
+                                if ok_button.x <= select_pos[0] <= ok_button.x + ok_button.width and ok_button.y <= \
+                                        select_pos[1] <= ok_button.y + ok_button.height:
+                                    saveData = (
+                                        self.player_house.backgroundFile,
+                                        self.player_house.houseFile,
+                                        self.player_house.windowFile,
+                                        self.player_house.doorFile,
+                                        self.player_house.hedge,
+                                        self.player_house.hedgeFile,
+                                        self.player_house.path,
+                                        self.player_house.pathFile,
+                                        self.player_house.garage,
+                                        self.player_house.garageDoorFile,
+                                        self.player_house.grass,
+                                        self.player_house.grassFile,
+                                        self.player_house.flora,
+                                        self.player_house.floraFile,
+                                    )
+                                    shelfFile = shelve.open(SAVE_FILE, writeback=True)
+                                    shelfFile['saved_data'] = saveData
+                                    shelfFile.close()
+                                    selected = True
+                                if cancel_button.x <= select_pos[0] <= cancel_button.x + cancel_button.width and \
+                                        cancel_button.y <= select_pos[1] <= cancel_button.y + cancel_button.height:
+                                    selected = True
                 if self.load_button.x <= mouse_pos[
                     0] <= self.load_button.x + self.load_button.width and self.load_button.y <= mouse_pos[
                     1] <= self.load_button.y + self.load_button.height:
-                    shelfFile = shelve.open(SAVE_FILE)
-                    loadInfo = shelfFile['saved_data']
-                    shelfFile.close()
-                    self.player_house.background = loadInfo[0]
-                    self.player_house.houseType = loadInfo[1]
-                    self.player_house.houseWindow = loadInfo[2]
-                    self.player_house.houseColor = loadInfo[3]
-                    self.player_house.houseDoor = loadInfo[4]
-                    self.player_house.houseDoorColor = loadInfo[5]
-                    self.player_house.hedge = loadInfo[6]
-                    self.player_house.houseHedgeType = loadInfo[7]
-                    self.player_house.path = loadInfo[8]
-                    self.player_house.pathImage = loadInfo[9]
-                    self.player_house.houseGarage = loadInfo[10]
-                    self.player_house.garageDoorImage = loadInfo[11]
-                    self.player_house.houseGarageDoorColor = loadInfo[12]
-                    self.player_house.houseGrass = loadInfo[13]
-                    self.player_house.houseFlora = loadInfo[14]
-                    self.player_house.floraImage = loadInfo[15]
+                    selected = False
+                    menu_screen = pygame.Surface(SAVE_SIZE)
+                    to_save = Button(menu_screen, SAVE_SCREEN_WIDTH, 50, 0, 0, WHITE,
+                                     'Are you sure you want to load?')
+                    ok_button = Button(menu_screen, OK_WIDTH, OK_HEIGHT, OK_X, OK_Y, GREY, 'OK')
+                    cancel_button = Button(menu_screen, CANCEL_WIDTH, CANCEL_HEIGHT, CANCEL_X, CANCEL_Y, GREY, 'CANCEL')
 
-                if HOUSE_BUT_X <= mouse_pos[
-                    0] <= HOUSE_BUT_X + HOUSE_BUT_WIDTH_HEIGHT and HOUSE_BUT_Y <= mouse_pos[
-                    1] <= HOUSE_BUT_Y + HOUSE_BUT_WIDTH_HEIGHT:
+                    while not selected:
+                        select_pos = pygame.mouse.get_pos()
+                        menu_screen.fill(WHITE)
+                        to_save.draw()
+                        ok_button.draw()
+                        cancel_button.draw()
+                        to_save.draw()
+                        self.screen.blit(menu_screen, (0, 0))
+                        pygame.display.update()
+                        for choice in pygame.event.get():
+                            if choice.type == pygame.MOUSEBUTTONUP and choice.button == 1:
+                                if ok_button.x <= select_pos[0] <= ok_button.x + ok_button.width and ok_button.y <= \
+                                        select_pos[1] <= ok_button.y + ok_button.height:
+                                    shelfFile = shelve.open(SAVE_FILE)
+                                    loadInfo = shelfFile['saved_data']
+                                    shelfFile.close()
+                                    self.player_house.backgroundFile = loadInfo[0]
+                                    self.player_house.houseFile = loadInfo[1]
+                                    self.player_house.windowFile = loadInfo[2]
+                                    self.player_house.doorFile = loadInfo[3]
+                                    self.player_house.hedge = loadInfo[4]
+                                    self.player_house.hedgeFile = loadInfo[5]
+                                    self.player_house.path = loadInfo[6]
+                                    self.player_house.pathFile = loadInfo[7]
+                                    self.player_house.garage = loadInfo[8]
+                                    self.player_house.garageDoorFile = loadInfo[9]
+                                    self.player_house.grass = loadInfo[10]
+                                    self.player_house.grassFile = loadInfo[11]
+                                    self.player_house.flora = loadInfo[12]
+                                    self.player_house.floraFile = loadInfo[13]
+                                    selected = True
+                                if cancel_button.x <= select_pos[0] <= cancel_button.x + cancel_button.width and \
+                                        cancel_button.y <= select_pos[1] <= cancel_button.y + cancel_button.height:
+                                    selected = True
+                if HOUSE_BUT_X <= mouse_pos[0] <= HOUSE_BUT_X + HOUSE_BUT_WIDTH_HEIGHT and HOUSE_BUT_Y <=\
+                        mouse_pos[1] <= HOUSE_BUT_Y + HOUSE_BUT_WIDTH_HEIGHT:
                     self.state = HOUSE_LANDING
 
     def start_update(self):
@@ -229,17 +277,16 @@ class App:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-            if event.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[
-                0] >= MAIN_X and MAIN_Y + MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
+            if event.type == pygame.MOUSEBUTTONUP and MAIN_X + BACK_ARROW_WIDTH_HEIGHT >= mouse_pos[
+                0] >= MAIN_X and MAIN_Y + BACK_ARROW_WIDTH_HEIGHT >= mouse_pos[1] >= MAIN_Y:
                 self.state = START
                 self.load_state = True
-                self.player_house.houseGrass = True
 
     def house_update(self):
         pass
 
     def house_draw(self):
-        self.player_house.draw(self.return_main)
+        self.player_house.draw(self.back_arrow, 0, MAIN_X, MAIN_Y, K_ORANGE, self.upgrades_button)
         pygame.display.update()
 
     def house_load(self):
