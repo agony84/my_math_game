@@ -97,37 +97,35 @@ class App:
     def run(self):
         while self.running:
             if self.state == START:
-                if self.load_state:
-                    self.start_load()
                 self.start_events()
                 self.start_update()
                 self.start_draw()
             elif self.state == NUMS_LANDING:
                 pass
             elif self.state == LEARN_DIGITS:
+                if self.load_state:
+                    self.learn_digits_load()
                 self.learn_digits_events()
                 self.learn_digits_update()
                 self.learn_digits_draw()
-                if self.load_state:
-                    self.learn_digits_load()
             elif self.state == ALPHABET_LANDING:
                 pass
             elif self.state == LEARN_ALPHABET:
+                if self.load_state:
+                    self.learn_alphabet_load()
                 self.learn_alphabet_events()
                 self.learn_alphabet_update()
                 self.learn_alphabet_draw()
-                if self.load_state:
-                    self.learn_alphabet_load()
             elif self.state == ZERO_TO_TEN:
                 self.zero_ten_events()
                 self.zero_ten_update()
                 self.zero_ten_draw()
             elif self.state == HOUSE_LANDING:
+                if self.load_state:
+                    self.house_load()
                 self.house_events()
                 self.house_update()
                 self.house_draw()
-                if self.load_state:
-                    self.house_load()
             else:
                 self.running = False
             self.clock.tick(FPS)
@@ -158,8 +156,8 @@ class App:
                     menu_screen = pygame.Surface(SAVE_SIZE)
                     to_save = Button(menu_screen, SAVE_SCREEN_WIDTH, 50, 0, 0, WHITE,
                                      'Are you sure you want to save?')
-                    ok_button = Button(menu_screen, OK_WIDTH, OK_HEIGHT, OK_X, OK_Y, GREY, 'OK')
-                    cancel_button = Button(menu_screen, CANCEL_WIDTH, CANCEL_HEIGHT, CANCEL_X, CANCEL_Y, GREY, 'CANCEL')
+                    ok_button = Button(menu_screen, OK_WIDTH, OK_HEIGHT, OK_X, OK_Y, L_GREEN, 'OK')
+                    cancel_button = Button(menu_screen, CANCEL_WIDTH, CANCEL_HEIGHT, CANCEL_X, CANCEL_Y, RED, 'CANCEL')
 
                     while not selected:
                         select_pos = pygame.mouse.get_pos()
@@ -204,8 +202,8 @@ class App:
                     menu_screen = pygame.Surface(SAVE_SIZE)
                     to_save = Button(menu_screen, SAVE_SCREEN_WIDTH, 50, 0, 0, WHITE,
                                      'Are you sure you want to load?')
-                    ok_button = Button(menu_screen, OK_WIDTH, OK_HEIGHT, OK_X, OK_Y, GREY, 'OK')
-                    cancel_button = Button(menu_screen, CANCEL_WIDTH, CANCEL_HEIGHT, CANCEL_X, CANCEL_Y, GREY, 'CANCEL')
+                    ok_button = Button(menu_screen, OK_WIDTH, OK_HEIGHT, OK_X, OK_Y, L_GREEN, 'OK')
+                    cancel_button = Button(menu_screen, CANCEL_WIDTH, CANCEL_HEIGHT, CANCEL_X, CANCEL_Y, RED, 'CANCEL')
 
                     while not selected:
                         select_pos = pygame.mouse.get_pos()
@@ -249,8 +247,7 @@ class App:
         pass
 
     def start_load(self):
-        self.player_house.houseColor = GREEN
-        self.player_house.houseDoorColor = K_BLUE
+        self.start_draw()
         self.load_state = False
 
     def start_draw(self):
@@ -277,10 +274,10 @@ class App:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-            if event.type == pygame.MOUSEBUTTONUP and MAIN_X + BACK_ARROW_WIDTH_HEIGHT >= mouse_pos[
-                0] >= MAIN_X and MAIN_Y + BACK_ARROW_WIDTH_HEIGHT >= mouse_pos[1] >= MAIN_Y:
-                self.state = START
-                self.load_state = True
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                if MAIN_X + BACK_ARROW_WIDTH_HEIGHT >= mouse_pos[0] >= MAIN_X and MAIN_Y + BACK_ARROW_WIDTH_HEIGHT >=\
+                        mouse_pos[1] >= MAIN_Y:
+                    self.state = START
 
     def house_update(self):
         pass
@@ -290,7 +287,7 @@ class App:
         pygame.display.update()
 
     def house_load(self):
-        pass
+        self.house_draw()
 
     ############################### LEARN DIGITS FUNCTIONS ################################
     def learn_digits_events(self):
@@ -302,13 +299,13 @@ class App:
                 self.display_continue = False
                 self.learn_digits_stage2()
                 self.display_continue = True
-            if event.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[
-                0] >= MAIN_X and MAIN_Y + MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
-                self.state = START
+            if event.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[0] >= MAIN_X and MAIN_Y +\
+                    MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
                 self.display_continue = False
                 self.display_score = False
                 self.score = 0
                 self.load_state = True
+                self.state = START
 
     def learn_digits_update(self):
         pass
@@ -335,6 +332,7 @@ class App:
         play digit intro sound clips.
         :return:
         """
+        self.learn_digits_draw()
         self.load_state = False
         self.play_clip(BEGIN_DIGITS)
         self.play_clip(NUMS_FROM_DIGITS)
@@ -589,6 +587,7 @@ class App:
         upon load, play intro alphabet sound clips
         :return: none
         """
+        self.learn_alphabet_draw()
         self.play_clip(LEARN_ALPHABET)
         self.play_clip(SING_ALPHABET)
         self.load_state = False
