@@ -15,6 +15,13 @@ from number_spritesheet_class import *
 from sound_files import *
 from buttons_class import *
 from image_paths import *
+from house_class import *
+"""
+using shelve and dbm.dumb for game state saves. Shelve is used for the save, dbm.dumb is necessary
+for saving game state of distributable version.
+"""
+import shelve
+import dbm.dumb
 
 pygame.init()
 
@@ -50,6 +57,8 @@ class App:
         self.reg_lower_abc = NumberSprites(ABC_LOWER, ABC_COLS, ABC_WIDTH, ABC_HEIGHT)
         self.highl_lower_abc = NumberSprites(ABC_LOWER_HIGH, ABC_COLS, ABC_WIDTH, ABC_HEIGHT)
         self.skip_img = NumberSprites(SKIP_ARROWS, 1, SKIP_WIDTH, SKIP_HEIGHT)
+        self.house_button = NumberSprites(HOUSE_BTN, 1, HOUSE_BUT_WIDTH_HEIGHT, HOUSE_BUT_WIDTH_HEIGHT)
+        self.back_arrow = NumberSprites(BACK_ARROW, 1, BACK_ARROW_WIDTH_HEIGHT, BACK_ARROW_WIDTH_HEIGHT)
         self.sound_index = 0
         self.num_display = pygame.Surface((60, 60))
         # resources for learn_digits
@@ -74,13 +83,19 @@ class App:
                            'Menu', SMALL_TEXT_SIZE)
         self.continue_button = Button(self.screen, CONTINUE_WIDTH, CONTINUE_HEIGHT, CONTINUE_X, CONTINUE_Y,
                                       CONTINUE_COLOR, CONTINUE_TEXT, MEDIUM_TEXT_SIZE, K_YELLOW)
-
+        self.save_button = Button(self.screen, MAIN_BUTTON_WIDTH, MAIN_BUTTON_HEIGHT, MAIN_X, MAIN_Y,
+                                  MAIN_BUTTON_COLOR, "Save", SMALL_TEXT_SIZE)
+        self.load_button = Button(self.screen, MAIN_BUTTON_WIDTH, MAIN_BUTTON_HEIGHT, MAIN_X, MAIN_Y - 100,
+                                  MAIN_BUTTON_COLOR, "Load", SMALL_TEXT_SIZE)
+        self.player_house = House(self.screen)
         # load game
         self.load()
 
     def run(self):
         while self.running:
             if self.state == START:
+                if self.load_state:
+                    self.start_load()
                 self.start_events()
                 self.start_update()
                 self.start_draw()
@@ -104,6 +119,12 @@ class App:
                 self.zero_ten_events()
                 self.zero_ten_update()
                 self.zero_ten_draw()
+            elif self.state == HOUSE_LANDING:
+                self.house_events()
+                self.house_update()
+                self.house_draw()
+                if self.load_state:
+                    self.house_load()
             else:
                 self.running = False
             self.clock.tick(FPS)
@@ -127,9 +148,62 @@ class App:
                     1] <= self.letter_button.y + self.letter_button.height:
                     self.state = LEARN_ALPHABET
                     self.load_state = True
+                if self.save_button.x <= mouse_pos[
+                    0] <= self.save_button.x + self.save_button.width and self.save_button.y <= mouse_pos[
+                    1] <= self.save_button.y + self.save_button.height:
+                    shelfFile = shelve.open(SAVE_FILE, writeback=True)
+                    shelfFile['saved_data'] = self.player_house.houseType
+                        # self.player_house.houseType,
+                        # self.player_house.houseWindow,
+                        # self.player_house.houseColor,
+                        # self.player_house.houseDoor,
+                        # self.player_house.houseDoorColor,
+                        # self.player_house.houseHedge,
+                        # self.player_house.houseHedgeType,
+                        # self.player_house.housePath,
+                        # self.player_house.housePathType,
+                        # self.player_house.houseGarage,
+                        # self.player_house.houseGarageDoorType,
+                        # self.player_house.houseGarageDoorColor,
+                        # self.player_house.houseGrass,
+                        # self.player_house.houseFlora,
+                        # self.player_house.houseFloraType
+                    shelfFile.close()
+                if self.load_button.x <= mouse_pos[
+                    0] <= self.load_button.x + self.load_button.width and self.load_button.y <= mouse_pos[
+                    1] <= self.load_button.y + self.load_button.height:
+                    shelfFile = shelve.open(SAVE_FILE)
+                    loadInfo = shelfFile['saved_data']
+                    shelfFile.close()
+                    self.player_house.background = loadInfo[0]
+                    self.player_house.houseType = loadInfo[1]
+                    self.player_house.houseWindow = loadInfo[2]
+                    self.player_house.houseColor = loadInfo[3]
+                    self.player_house.houseDoor = loadInfo[4]
+                    self.player_house.houseDoorColor = loadInfo[5]
+                    self.player_house.hedge = loadInfo[6]
+                    self.player_house.houseHedgeType = loadInfo[7]
+                    self.player_house.path = loadInfo[8]
+                    self.player_house.pathImage = loadInfo[9]
+                    self.player_house.houseGarage = loadInfo[10]
+                    self.player_house.garageDoorImage = loadInfo[11]
+                    self.player_house.houseGarageDoorColor = loadInfo[12]
+                    self.player_house.houseGrass = loadInfo[13]
+                    self.player_house.houseFlora = loadInfo[14]
+                    self.player_house.floraImage = loadInfo[15]
+
+                if HOUSE_BUT_X <= mouse_pos[
+                    0] <= HOUSE_BUT_X + HOUSE_BUT_WIDTH_HEIGHT and HOUSE_BUT_Y <= mouse_pos[
+                    1] <= HOUSE_BUT_Y + HOUSE_BUT_WIDTH_HEIGHT:
+                    self.state = HOUSE_LANDING
 
     def start_update(self):
         pass
+
+    def start_load(self):
+        self.player_house.houseColor = GREEN
+        self.player_house.houseDoorColor = K_BLUE
+        self.load_state = False
 
     def start_draw(self):
         """
@@ -143,9 +217,35 @@ class App:
             SCREEN_CENTER[0], 100], WELCOME_SIZE, K_PURPLE, ALL_FONT, centered=True)
         self.number_button.draw()
         self.letter_button.draw()
+        self.save_button.draw()
+        self.load_button.draw()
+        self.house_button.draw(self.screen, 0, HOUSE_BUT_X, HOUSE_BUT_Y, K_ORANGE)
         pygame.display.update()
 
-    ############################### LEARN DIGITS FUNCTION ################################
+    ############################### HOUSE LANDING FUNCTIONS ################################
+
+    def house_events(self):
+        mouse_pos = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            if event.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[
+                0] >= MAIN_X and MAIN_Y + MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
+                self.state = START
+                self.load_state = True
+                self.player_house.houseGrass = True
+
+    def house_update(self):
+        pass
+
+    def house_draw(self):
+        self.player_house.draw(self.return_main)
+        pygame.display.update()
+
+    def house_load(self):
+        pass
+
+    ############################### LEARN DIGITS FUNCTIONS ################################
     def learn_digits_events(self):
         mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
@@ -154,11 +254,14 @@ class App:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 self.display_continue = False
                 self.learn_digits_stage2()
+                self.display_continue = True
             if event.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[
                 0] >= MAIN_X and MAIN_Y + MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
                 self.state = START
                 self.display_continue = False
                 self.display_score = False
+                self.score = 0
+                self.load_state = True
 
     def learn_digits_update(self):
         pass
@@ -300,9 +403,6 @@ class App:
                             found = True
                             self.incorrect_find = 0
                             self.score += 1
-                            if self.score >= 10:
-                                self.state = ZERO_TO_TEN
-                                self.load_state = True
 
                         elif (num_pos_list[num1_idx][0] + NUM_DISPLAY_WIDTH) >= mouse_pos[0] >= (
                                 num_pos_list[num1_idx][0]) and (num_pos_list[num1_idx][1] + NUM_DISPLAY_HEIGHT) \
@@ -359,6 +459,7 @@ class App:
                                 self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1], K_PURPLE)
                                 self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1], K_PURPLE)
                                 self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE)
+        self.score = 0
 
     ######################### END LEARN DIGITS ################################
 
@@ -467,7 +568,7 @@ class App:
                         ALPHABET_SONG.stop()
                 if event.type == pygame.USEREVENT:
                     image.draw(self.screen, index, SCREEN_CENTER[0] - (ABC_BUTTON_WIDTH / 2),
-                                            SCREEN_CENTER[1] - (ABC_BUTTON_HEIGHT / 2), K_PURPLE)
+                               SCREEN_CENTER[1] - (ABC_BUTTON_HEIGHT / 2), K_PURPLE)
                     if index <= len(ABC_DELAYS) - 2:
                         index += 1
                         pygame.time.set_timer(pygame.USEREVENT, ABC_DELAYS[index])
@@ -741,7 +842,7 @@ class App:
                     pygame.event.clear()
 
     def play_letter(self, index, delay=0):
-        letter_list[index].play();
+        letter_list[index].play()
         while pygame.mixer.get_busy():
             self.clock.tick(delay)
             pygame.event.clear()

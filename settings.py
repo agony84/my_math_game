@@ -81,6 +81,12 @@ CONTINUE_HEIGHT = 75
 CONTINUE_X = SCREEN_CENTER[0] - (CONTINUE_WIDTH / 2)
 CONTINUE_Y = SCREEN_CENTER[1] + 100
 CONTINUE_COLOR = K_PURPLE
+HOUSE_BUT_WIDTH_HEIGHT = 50
+HOUSE_BUT_X = SCREEN_CENTER[0] - (HOUSE_BUT_WIDTH_HEIGHT / 2)
+HOUSE_BUT_Y = SCREEN_HEIGHT - 75
+BACK_ARROW_WIDTH_HEIGHT = 50
+BACK_ARROW_X = 50
+BACK_ARROW_Y = 50
 
 ################### FONT SETTINGS ########################
 WELCOME_SIZE = 60
@@ -99,6 +105,7 @@ ZERO_TO_TEN = 'zero to ten'
 TEN_TO_TWENTY = 'ten to twenty'
 NUMS_LANDING = 'number landing screen'
 ALPHABET_LANDING = 'alphabet landing screen'
+HOUSE_LANDING = 'display house'
 
 ###################### PRINT MESSAGES ##########################
 START_MESSAGE = 'Welcome to '
@@ -111,3 +118,6 @@ FIVE_DELAY = 5000
 TEN_DELAY = 10000
 ABC_DELAYS = (10600, 1400, 1000, 1200, 1300, 1000, 1300, 2600, 1100, 1000, 1300, 1200, 1200, 1200, 2400, 1400, 1200,
               1100, 1100, 1200, 1200, 2500, 2500, 2200, 1400, 1100)
+
+############### SAVE GAME ######################
+SAVE_FILE = 'save_files/savedGame'
