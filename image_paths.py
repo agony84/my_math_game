@@ -22,6 +22,8 @@ BACK_DEF = 'images/house_images/backgrounds/background_default.png'
 
 # DOORS
 DOOR_DEF = 'images/house_images/doors/door_default.png'
+DOOR_RED = 'images/house_images/doors/door_red.png'
+DOOR_BLUE = 'images/house_images/doors/door_blue.png'
 
 # HEDGES
 HEDGE_REG = 'images/house_images/hedges/hedge_reg.png'

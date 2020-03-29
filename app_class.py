@@ -317,6 +317,13 @@ class App:
                 # Column one
                 if UP_COL_1 + UP_WIDTH >= mouse_pos[0] > UP_COL_1 and UP_ROW_1 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_1:
                     self.upgrades_house_selection()
+                if UP_COL_1 + UP_WIDTH >= mouse_pos[0] > UP_COL_1 and UP_ROW_2 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_2:
+                    self.upgrades_door_selection()
+                if UP_COL_1 + UP_WIDTH >= mouse_pos[0] > UP_COL_1 and UP_ROW_3 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_3:
+                    self.upgrades_grass_selection()
+                # Column two
+                if UP_COL_2 + UP_WIDTH >= mouse_pos[0] > UP_COL_2 and UP_ROW_1 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_1:
+                    self.upgrades_path_selection()
 
                 print(mouse_pos)
 
@@ -354,7 +361,7 @@ class App:
         pass
 
     def upgrades_house_menu(self):
-        # display all menu items with corresponding cost
+        # display all house menu items with corresponding cost
         star = pygame.image.load(STAR).convert_alpha()
         up_surf = pygame.Surface((UP_MENU_WIDTH, UP_MENU_HEIGHT))
         up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
@@ -409,7 +416,7 @@ class App:
         draw_text("= " + str(HOUSE_GAR_COLOR_COST), up_surf,
                   [UP_MENU_X3 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
                   12, BLACK, ALL_FONT)
-        escape = pygame.image.load(EXIT)
+        # escape = pygame.image.load(EXIT)
         # self.upgrades_display_element(escape, EXIT_WIDTH, EXIT_HEIGHT, UP_MENU_WIDTH - EXIT_WIDTH, 0, up_surf)
         self.screen.blit(up_surf_border, (UP_MENU_X - 5, UP_MENU_Y - 5))
         self.screen.blit(up_surf, (UP_MENU_X, UP_MENU_Y))
@@ -428,212 +435,276 @@ class App:
                 if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
                     if UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_1 + UP_HEIGHT >= \
                             mouse_pos[1] >= UP_MENU_ROW_1:
-                        self.player_house.houseFile = HOUSE_DEF
-                        self.player_house.garage = False
-                        draw_text('Congratulations!', self.screen,
-                                  [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
-                                  SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                        draw_text('House is now white.', self.screen,
-                                  [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
-                                  SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                        pygame.display.update()
-                        pygame.event.wait()
-                        pygame.time.delay(TWO_DELAY)
+                        self.upgrades_selected("house", DEFAULTS_COST, HOUSE_DEF, "White house activated.")
                         selected = True
                     elif UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_2 + UP_HEIGHT >= \
                             mouse_pos[1] >= UP_MENU_ROW_2:
-                        if HOUSE_COLORS_COST <= self.stars:
-                            self.stars -= HOUSE_COLORS_COST
-                            self.player_house.houseFile = HOUSE_PINK
-                            self.player_house.garage = False
-                            draw_text('Congratulations!', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            draw_text('House is now pink.', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            selected = True
-                        else:
-                            surf_width = UP_MENU_WIDTH - 50
-                            surf_height = 150
-                            surf = pygame.Surface((surf_width, surf_height))
-                            surf.fill(WHITE)
-                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
-                            draw_text('= ' + str(HOUSE_COLORS_COST), surf,
-                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
-                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            self.upgrades_house_menu()
+                        self.upgrades_selected("house", HOUSE_COLORS_COST, HOUSE_PINK, "Pink house activated.")
+                        selected = True
                     elif UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_3 + UP_HEIGHT >= \
                             mouse_pos[1] >= UP_MENU_ROW_3:
-                        if HOUSE_COLORS_COST <= self.stars:
-                            self.stars -= HOUSE_COLORS_COST
-                            self.player_house.houseFile = HOUSE_BLUE
-                            self.player_house.garage = False
-                            draw_text('Congratulations!', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            draw_text('House is now blue.', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            selected = True
-                        else:
-                            surf_width = UP_MENU_WIDTH - 50
-                            surf_height = 150
-                            surf = pygame.Surface((surf_width, surf_height))
-                            surf.fill(WHITE)
-                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
-                            draw_text('= ' + str(HOUSE_COLORS_COST), surf,
-                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
-                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            self.upgrades_house_menu()
+                        self.upgrades_selected("house", HOUSE_COLORS_COST, HOUSE_BLUE, "Blue house activated.")
+                        selected = True
                     elif UP_MENU_COL_2 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_2 and UP_MENU_ROW_1 + UP_HEIGHT >= \
                             mouse_pos[1] >= UP_MENU_ROW_1:
-                        if HOUSE_COLORS_COST <= self.stars:
-                            self.stars -= HOUSE_COLORS_COST
-                            self.player_house.houseFile = HOUSE_LBLUE
-                            self.player_house.garage = False
-                            draw_text('Congratulations!', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            draw_text('House is now light blue.', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            selected = True
-                        else:
-                            surf_width = UP_MENU_WIDTH - 50
-                            surf_height = 150
-                            surf = pygame.Surface((surf_width, surf_height))
-                            surf.fill(WHITE)
-                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
-                            draw_text('= ' + str(HOUSE_COLORS_COST), surf,
-                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
-                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            self.upgrades_house_menu()
+                        self.upgrades_selected("house", HOUSE_COLORS_COST, HOUSE_LBLUE, "Light blue house activated.")
+                        selected = True
                     elif UP_MENU_COL_2 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_2 and UP_MENU_ROW_2 + UP_HEIGHT >= \
                             mouse_pos[1] >= UP_MENU_ROW_2:
-                        if HOUSE_GAR_DEF_COST <= self.stars:
-                            self.stars -= HOUSE_GAR_DEF_COST
-                            self.player_house.houseFile = HOUSE_GARAGE_WHITE
-                            self.player_house.garage = True
-                            draw_text('Congratulations!', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            draw_text('White house now has a garage.', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            selected = True
-                        else:
-                            surf_width = UP_MENU_WIDTH - 50
-                            surf_height = 150
-                            surf = pygame.Surface((surf_width, surf_height))
-                            surf.fill(WHITE)
-                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
-                            draw_text('= ' + str(HOUSE_GAR_DEF_COST), surf,
-                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
-                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            self.upgrades_house_menu()
+                        self.upgrades_selected("house", HOUSE_GAR_DEF_COST, HOUSE_GARAGE_WHITE,
+                                               "White garage activated.", True)
+                        selected = True
                     elif UP_MENU_COL_2 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_2 and UP_MENU_ROW_3 + UP_HEIGHT >= \
                             mouse_pos[1] >= UP_MENU_ROW_3:
-                        if HOUSE_GAR_COLOR_COST <= self.stars:
-                            self.stars -= HOUSE_GAR_COLOR_COST
-                            self.player_house.houseFile = HOUSE_GARAGE_PINK
-                            self.player_house.garage = True
-                            draw_text('Congratulations!', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            draw_text('Pink house now has a garage.', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            selected = True
-                        else:
-                            surf_width = UP_MENU_WIDTH - 50
-                            surf_height = 150
-                            surf = pygame.Surface((surf_width, surf_height))
-                            surf.fill(WHITE)
-                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
-                            draw_text('= ' + str(HOUSE_GAR_COLOR_COST), surf,
-                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
-                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            self.upgrades_house_menu()
+                        self.upgrades_selected("house", HOUSE_GAR_COLOR_COST, HOUSE_GARAGE_PINK,
+                                               "Pink garage activated.", True)
+                        selected = True
                     elif UP_MENU_COL_3 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_3 and UP_MENU_ROW_1 + UP_HEIGHT >= \
                             mouse_pos[1] >= UP_MENU_ROW_1:
-                        if HOUSE_GAR_COLOR_COST <= self.stars:
-                            self.stars -= HOUSE_GAR_COLOR_COST
-                            self.player_house.houseFile = HOUSE_GARAGE_BLUE
-                            self.player_house.garage = True
-                            draw_text('Congratulations!', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            draw_text('Blue house now has a garage.', self.screen,
-                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
-                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            selected = True
-                        else:
-                            surf_width = UP_MENU_WIDTH - 50
-                            surf_height = 150
-                            surf = pygame.Surface((surf_width, surf_height))
-                            surf.fill(WHITE)
-                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
-                            draw_text('= ' + str(HOUSE_GAR_COLOR_COST), surf,
-                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
-                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
-                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
-                            pygame.display.update()
-                            pygame.event.wait()
-                            pygame.time.delay(TWO_DELAY)
-                            self.upgrades_house_menu()
-                    # elif UP_MENU_X + UP_MENU_WIDTH - EXIT_WIDTH <= mouse_pos[0] <= UP_MENU_X + UP_MENU_WIDTH and\
-                    #         UP_MENU_Y <= mouse_pos[1] <= UP_MENU_Y + EXIT_HEIGHT:
-                    #     # change this to be if click outside menu box
-                    #     selected = True
+                        self.upgrades_selected("house", HOUSE_GAR_COLOR_COST, HOUSE_GARAGE_BLUE,
+                                               "Blue garage activated.", True)
+                        selected = True
                     elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
                             (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
                         selected = True
         self.upgrades_draw()
+
+    def upgrades_door_menu(self):
+        # display all door menu items with corresponding cost
+        star = pygame.image.load(STAR).convert_alpha()
+        up_surf = pygame.Surface((UP_MENU_WIDTH, UP_MENU_HEIGHT))
+        up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
+        up_surf_border.fill(K_PURPLE)
+        up_surf.fill(K_GREEN)
+        default = pygame.image.load(DOOR_DEF)
+        self.upgrades_display_element(default, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(DEFAULTS_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        red = pygame.image.load(DOOR_RED)
+        self.upgrades_display_element(red, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y2, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y2 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(DOOR_COLOR_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y2 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        blue = pygame.image.load(DOOR_BLUE)
+        self.upgrades_display_element(blue, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y3, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y3 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(DOOR_COLOR_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y3 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        # escape = pygame.image.load(EXIT)
+        # self.upgrades_display_element(escape, EXIT_WIDTH, EXIT_HEIGHT, UP_MENU_WIDTH - EXIT_WIDTH, 0, up_surf)
+        self.screen.blit(up_surf_border, (UP_MENU_X - 5, UP_MENU_Y - 5))
+        self.screen.blit(up_surf, (UP_MENU_X, UP_MENU_Y))
+        pygame.display.update()
+
+    def upgrades_door_selection(self):
+        selected = False
+        self.upgrades_door_menu()
+        # Get user selection
+        while not selected:
+            mouse_pos = pygame.mouse.get_pos()
+            for selection in pygame.event.get():
+                if selection.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                    if UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        self.upgrades_selected("door", DEFAULTS_COST, DOOR_DEF, "Brown door activated.")
+                        selected = True
+                    elif UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_2 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_2:
+                        self.upgrades_selected("door", DOOR_COLOR_COST, DOOR_RED, "Red door activated.")
+                        selected = True
+                    elif UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_3 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_3:
+                        self.upgrades_selected("door", DOOR_COLOR_COST, DOOR_BLUE, "Blue door activated.")
+                        selected = True
+                    elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
+                            (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
+                        selected = True
+        self.upgrades_draw()
+
+    def upgrades_grass_menu(self):
+        # display all grass menu items with corresponding cost
+        star = pygame.image.load(STAR).convert_alpha()
+        up_surf = pygame.Surface((UP_MENU_WIDTH, UP_MENU_HEIGHT))
+        up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
+        up_surf_border.fill(K_PURPLE)
+        up_surf.fill(K_GREEN)
+        default = pygame.image.load(GRASS_REG)
+        self.upgrades_display_element(default, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(GRASS_REG_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        # escape = pygame.image.load(EXIT)
+        # self.upgrades_display_element(escape, EXIT_WIDTH, EXIT_HEIGHT, UP_MENU_WIDTH - EXIT_WIDTH, 0, up_surf)
+        self.screen.blit(up_surf_border, (UP_MENU_X - 5, UP_MENU_Y - 5))
+        self.screen.blit(up_surf, (UP_MENU_X, UP_MENU_Y))
+        pygame.display.update()
+
+    def upgrades_grass_selection(self):
+        selected = False
+        self.upgrades_grass_menu()
+        # Get user selection
+        while not selected:
+            mouse_pos = pygame.mouse.get_pos()
+            for selection in pygame.event.get():
+                if selection.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                    if UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        self.upgrades_selected("grass", GRASS_REG_COST, GRASS_REG, "Grass activated.", True)
+                        selected = True
+                    elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
+                            (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
+                        selected = True
+        self.upgrades_draw()
+
+    def upgrades_path_menu(self):
+        # display all grass menu items with corresponding cost
+        star = pygame.image.load(STAR).convert_alpha()
+        up_surf = pygame.Surface((UP_MENU_WIDTH, UP_MENU_HEIGHT))
+        up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
+        up_surf_border.fill(K_PURPLE)
+        up_surf.fill(K_GREEN)
+        concrete = pygame.image.load(PATH_CONCRETE)
+        self.upgrades_display_element(concrete, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(PATH_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        stone = pygame.image.load(PATH_STONES)
+        self.upgrades_display_element(stone, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y2, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y2 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(PATH_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y2 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        gravel = pygame.image.load(PATH_GRAVEL)
+        self.upgrades_display_element(gravel, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y3, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y3 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(PATH_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y3 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        # escape = pygame.image.load(EXIT)
+        # self.upgrades_display_element(escape, EXIT_WIDTH, EXIT_HEIGHT, UP_MENU_WIDTH - EXIT_WIDTH, 0, up_surf)
+        self.screen.blit(up_surf_border, (UP_MENU_X - 5, UP_MENU_Y - 5))
+        self.screen.blit(up_surf, (UP_MENU_X, UP_MENU_Y))
+        pygame.display.update()
+
+    def upgrades_path_selection(self):
+        selected = False
+        self.upgrades_path_menu()
+        # Get user selection
+        while not selected:
+            mouse_pos = pygame.mouse.get_pos()
+            for selection in pygame.event.get():
+                if selection.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                    if UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        self.upgrades_selected("path", PATH_COST, PATH_CONCRETE, "Concrete path activated.", True)
+                        selected = True
+                    elif UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_2 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_2:
+                        self.upgrades_selected("path", PATH_COST, PATH_STONES, 'Stone path activated', True)
+                        selected = True
+                    elif UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_3 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_3:
+                        self.upgrades_selected("path", PATH_COST, PATH_GRAVEL, 'Gravel path activated', True)
+                        selected = True
+                    elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
+                            (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
+                        selected = True
+        self.upgrades_draw()
+
+    def upgrades_selected(self, select_type, cost, file, str1, activate=False):
+        if cost <= self.stars:
+            self.stars -= cost
+            if select_type == "path":
+                self.player_house.pathFile = file
+                self.player_house.path = activate
+            elif select_type == "house":
+                self.player_house.houseFile = file
+                self.player_house.garage = activate
+            elif select_type == "door":
+                self.player_house.doorFile = file
+            elif select_type == "grass":
+                self.player_house.grassFile = file
+                self.player_house.grass = activate
+            elif select_type == "hedge":
+                self.player_house.hedgeFile = file
+                self.player_house.hedge = activate
+            elif select_type == "flora":
+                self.player_house.floraFile = file
+                self.player_house.flora = activate
+            elif select_type == "garage door":
+                self.player_house.garageDoorFile = file
+            elif select_type == "driveway":
+                self.player_house.drivewayFile = file
+            elif select_type == "window":
+                self.player_house.windowFile = file
+            surf = pygame.Surface((300, 100))
+            surf.fill(WHITE)
+            draw_text('Congratulations!', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+            draw_text(str1, surf, [16, 60], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+            self.screen.blit(surf, (UP_MENU_X + (UP_MENU_WIDTH / 2) - (surf.get_width() / 2),
+                                    UP_MENU_Y + (UP_MENU_HEIGHT / 2) - (surf.get_height() / 2)))
+            pygame.display.update()
+            pygame.event.wait()
+            pygame.time.delay(TWO_DELAY)
+        else:
+            surf_width = UP_MENU_WIDTH - 50
+            surf_height = 150
+            surf = pygame.Surface((surf_width, surf_height))
+            surf.fill(WHITE)
+            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
+            draw_text('= ' + str(cost), surf,
+                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
+                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
+            pygame.display.update()
+            pygame.event.wait()
+            pygame.time.delay(TWO_DELAY)
+            if select_type == "path":
+                self.upgrades_path_menu()
+            elif select_type == "house":
+                self.upgrades_house_menu()
+            elif select_type == "door":
+                self.upgrades_door_menu()
+            elif select_type == "grass":
+                self.upgrades_grass_menu()
+            elif select_type == "hedge":
+                pass
+                # self.upgrades_hedge_menu()
+            elif select_type == "flora":
+                pass
+                # self.upgrades_flora_menu()
+            elif select_type == "garage door":
+                pass
+                # self.upgrades_garage_menu()
+            elif select_type == "driveway":
+                pass
+                # self.upgrades_driveway_menu()
+            elif select_type == "window":
+                pass
+                # self.upgrades_window_menu()
 
     def upgrades_display_element(self, img, img_width, img_height, img_x, img_y, surface=None, update=False):
         surf = pygame.transform.smoothscale(img, (img_width, img_height))
