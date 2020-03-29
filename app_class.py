@@ -7,22 +7,18 @@ Description:
 Main app code.
 """
 
-import pygame
-import sys
 import random
-from settings import *
+import sys
+import shelve
+from buttons_class import *
+from house_class import *
 from number_spritesheet_class import *
 from sound_files import *
-from buttons_class import *
-from image_paths import *
-from house_class import *
+
 """
 using shelve and dbm.dumb for game state saves. Shelve is used for the save, dbm.dumb is necessary
 for saving game state of distributable version.
 """
-import shelve
-import dbm.dumb
-
 pygame.init()
 
 
@@ -59,9 +55,11 @@ class App:
         self.skip_img = NumberSprites(SKIP_ARROWS, 1, SKIP_WIDTH, SKIP_HEIGHT)
         self.house_button = NumberSprites(HOUSE_BTN, 1, HOUSE_BUT_WIDTH_HEIGHT, HOUSE_BUT_WIDTH_HEIGHT)
         self.back_arrow = NumberSprites(BACK_ARROW, 1, BACK_ARROW_WIDTH_HEIGHT, BACK_ARROW_WIDTH_HEIGHT)
+        self.star_img = NumberSprites(STAR, 1, STAR_WIDTH, STAR_HEIGHT)
         self.sound_index = 0
         self.num_display = pygame.Surface((60, 60))
         # resources for learn_digits
+        self.stars = 1000
         self.index = 0
         self.play = True
         self.load_state = True
@@ -126,6 +124,12 @@ class App:
                 self.house_events()
                 self.house_update()
                 self.house_draw()
+            elif self.state == UPGRADES:
+                if self.load_state:
+                    self.upgrades_load()
+                self.upgrades_events()
+                self.upgrades_update()
+                self.upgrades_draw()
             else:
                 self.running = False
             self.clock.tick(FPS)
@@ -187,6 +191,7 @@ class App:
                                         self.player_house.grassFile,
                                         self.player_house.flora,
                                         self.player_house.floraFile,
+                                        self.stars
                                     )
                                     shelfFile = shelve.open(SAVE_FILE, writeback=True)
                                     shelfFile['saved_data'] = saveData
@@ -235,11 +240,12 @@ class App:
                                     self.player_house.grassFile = loadInfo[11]
                                     self.player_house.flora = loadInfo[12]
                                     self.player_house.floraFile = loadInfo[13]
+                                    self.stars = loadInfo[14]
                                     selected = True
                                 if cancel_button.x <= select_pos[0] <= cancel_button.x + cancel_button.width and \
                                         cancel_button.y <= select_pos[1] <= cancel_button.y + cancel_button.height:
                                     selected = True
-                if HOUSE_BUT_X <= mouse_pos[0] <= HOUSE_BUT_X + HOUSE_BUT_WIDTH_HEIGHT and HOUSE_BUT_Y <=\
+                if HOUSE_BUT_X <= mouse_pos[0] <= HOUSE_BUT_X + HOUSE_BUT_WIDTH_HEIGHT and HOUSE_BUT_Y <= \
                         mouse_pos[1] <= HOUSE_BUT_Y + HOUSE_BUT_WIDTH_HEIGHT:
                     self.state = HOUSE_LANDING
 
@@ -265,6 +271,8 @@ class App:
         self.save_button.draw()
         self.load_button.draw()
         self.house_button.draw(self.screen, 0, HOUSE_BUT_X, HOUSE_BUT_Y, K_ORANGE)
+        self.star_img.draw(self.screen, 0, STAR_X, STAR_Y + 70, K_BLUE)
+        draw_text("= " + str(self.stars), self.screen, [STAR_X + 50, STAR_Y + 80], 20, BLACK, ALL_FONT)
         pygame.display.update()
 
     ############################### HOUSE LANDING FUNCTIONS ################################
@@ -275,19 +283,368 @@ class App:
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                if MAIN_X + BACK_ARROW_WIDTH_HEIGHT >= mouse_pos[0] >= MAIN_X and MAIN_Y + BACK_ARROW_WIDTH_HEIGHT >=\
+                if MAIN_X + BACK_ARROW_WIDTH_HEIGHT >= mouse_pos[0] >= MAIN_X and MAIN_Y + BACK_ARROW_WIDTH_HEIGHT >= \
                         mouse_pos[1] >= MAIN_Y:
                     self.state = START
+                if UPGRADE_X + UPGRADE_WIDTH >= mouse_pos[0] >= UPGRADE_X and UPGRADE_Y + UPGRADE_HEIGHT >= mouse_pos[
+                    1] >= UPGRADE_Y:
+                    self.state = UPGRADES
+                print(mouse_pos)
 
     def house_update(self):
         pass
 
     def house_draw(self):
-        self.player_house.draw(self.back_arrow, 0, MAIN_X, MAIN_Y, K_ORANGE, self.upgrades_button)
+        # self.player_house.draw(0, MAIN_X, MAIN_Y, K_ORANGE, self.upgrades_button)
+        self.player_house.draw(0)
+        self.back_arrow.draw(self.screen, 0, MAIN_X, MAIN_Y, pygame.SRCALPHA)
+        self.upgrades_button.draw()
         pygame.display.update()
 
     def house_load(self):
         self.house_draw()
+
+    ########################## UPGRADES FUNCTIONS ############################
+    def upgrades_events(self):
+        mouse_pos = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                if MAIN_X + BACK_ARROW_WIDTH_HEIGHT >= mouse_pos[0] >= MAIN_X and MAIN_Y + BACK_ARROW_WIDTH_HEIGHT >= \
+                        mouse_pos[1] >= MAIN_Y:
+                    self.state = HOUSE_LANDING
+                # Column one
+                if UP_COL_1 + UP_WIDTH >= mouse_pos[0] > UP_COL_1 and UP_ROW_1 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_1:
+                    self.upgrades_house_selection()
+
+                print(mouse_pos)
+
+    def upgrades_update(self):
+        pass
+
+    def upgrades_draw(self):
+        self.screen.fill(K_BLUE)
+
+        self.star_img.draw(self.screen, 0, STAR_X + 30, STAR_Y - 40, pygame.SRCALPHA)
+        draw_text("= " + str(self.stars), self.screen, [STAR_X + 75, STAR_Y - 30], MEDIUM_TEXT_SIZE, BLACK, ALL_FONT)
+        draw_text("Upgrades", self.screen, [SCREEN_CENTER[0], BORDER_BUFFER], WELCOME_SIZE, K_PURPLE, ALL_FONT, True)
+        self.back_arrow.draw(self.screen, 0, MAIN_X, MAIN_Y, K_BLUE)
+        house = pygame.image.load(HOUSE_DEF).convert_alpha()
+        self.upgrades_display_element(house, UP_WIDTH, UP_HEIGHT, UP_COL_1, UP_ROW_1)
+        doorImage = pygame.image.load(DOOR_DEF).convert_alpha()
+        self.upgrades_display_element(doorImage, UP_WIDTH, UP_HEIGHT, UP_COL_1, UP_ROW_2)
+        grass = pygame.image.load(GRASS_REG).convert_alpha()
+        self.upgrades_display_element(grass, UP_WIDTH, UP_HEIGHT, UP_COL_1, UP_ROW_3)
+        path = pygame.image.load(PATH_CONCRETE)
+        self.upgrades_display_element(path, UP_WIDTH, UP_HEIGHT, UP_COL_2, UP_ROW_1)
+        hedge = pygame.image.load(UP_HEDGE)
+        self.upgrades_display_element(hedge, UP_WIDTH, UP_HEIGHT, UP_COL_2, UP_ROW_2)
+        flora = pygame.image.load(UP_FLORA)
+        self.upgrades_display_element(flora, UP_WIDTH, UP_HEIGHT, UP_COL_2, UP_ROW_3)
+        garage_door = pygame.image.load(GARAGE_DOOR_DEFAULT_WHITE)
+        self.upgrades_display_element(garage_door, UP_WIDTH, UP_HEIGHT, UP_COL_3, UP_ROW_1)
+        driveway = pygame.image.load(DRIVEWAY_DEFAULT)
+        self.upgrades_display_element(driveway, UP_WIDTH, UP_HEIGHT, UP_COL_3, UP_ROW_2)
+        window = pygame.image.load(WINDOW_DEF)
+        self.upgrades_display_element(window, UP_WIDTH, UP_HEIGHT, UP_COL_3, UP_ROW_3)
+        pygame.display.update()
+
+    def upgrades_load(self):
+        pass
+
+    def upgrades_house_menu(self):
+        # display all menu items with corresponding cost
+        star = pygame.image.load(STAR).convert_alpha()
+        up_surf = pygame.Surface((UP_MENU_WIDTH, UP_MENU_HEIGHT))
+        up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
+        up_surf_border.fill(K_PURPLE)
+        up_surf.fill(K_GREEN)
+        default = pygame.image.load(HOUSE_DEF)
+        self.upgrades_display_element(default, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(DEFAULTS_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        pink = pygame.image.load(HOUSE_PINK)
+        self.upgrades_display_element(pink, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y2, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y2 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(HOUSE_COLORS_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y2 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        blue = pygame.image.load(HOUSE_BLUE)
+        self.upgrades_display_element(blue, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y3, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y3 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(HOUSE_COLORS_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y3 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        lblue = pygame.image.load(HOUSE_LBLUE)
+        self.upgrades_display_element(lblue, UP_WIDTH, UP_HEIGHT, UP_MENU_X2, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X2 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(HOUSE_COLORS_COST), up_surf,
+                  [UP_MENU_X2 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        gar_white = pygame.image.load(HOUSE_GARAGE_WHITE)
+        self.upgrades_display_element(gar_white, UP_WIDTH, UP_HEIGHT, UP_MENU_X2, UP_MENU_Y2, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X2 - STAR_BUFFER,
+                                      UP_MENU_Y2 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(HOUSE_GAR_DEF_COST), up_surf,
+                  [UP_MENU_X2 + UP_STAR_W_H + 2, UP_MENU_Y2 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        gar_pink = pygame.image.load(HOUSE_GARAGE_PINK)
+        self.upgrades_display_element(gar_pink, UP_WIDTH, UP_HEIGHT, UP_MENU_X2, UP_MENU_Y3, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X2 - STAR_BUFFER,
+                                      UP_MENU_Y3 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(HOUSE_GAR_COLOR_COST), up_surf,
+                  [UP_MENU_X2 + UP_STAR_W_H + 2, UP_MENU_Y3 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        gar_blue = pygame.image.load(HOUSE_GARAGE_BLUE)
+        self.upgrades_display_element(gar_blue, UP_WIDTH, UP_HEIGHT, UP_MENU_X3, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X3 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(HOUSE_GAR_COLOR_COST), up_surf,
+                  [UP_MENU_X3 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        escape = pygame.image.load(EXIT)
+        # self.upgrades_display_element(escape, EXIT_WIDTH, EXIT_HEIGHT, UP_MENU_WIDTH - EXIT_WIDTH, 0, up_surf)
+        self.screen.blit(up_surf_border, (UP_MENU_X - 5, UP_MENU_Y - 5))
+        self.screen.blit(up_surf, (UP_MENU_X, UP_MENU_Y))
+        pygame.display.update()
+
+    def upgrades_house_selection(self):
+        selected = False
+        self.upgrades_house_menu()
+        # Get user selection
+        while not selected:
+            mouse_pos = pygame.mouse.get_pos()
+            for selection in pygame.event.get():
+                if selection.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                    if UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        self.player_house.houseFile = HOUSE_DEF
+                        self.player_house.garage = False
+                        draw_text('Congratulations!', self.screen,
+                                  [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
+                                  SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                        draw_text('House is now white.', self.screen,
+                                  [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
+                                  SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                        pygame.display.update()
+                        pygame.event.wait()
+                        pygame.time.delay(TWO_DELAY)
+                        selected = True
+                    elif UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_2 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_2:
+                        if HOUSE_COLORS_COST <= self.stars:
+                            self.stars -= HOUSE_COLORS_COST
+                            self.player_house.houseFile = HOUSE_PINK
+                            self.player_house.garage = False
+                            draw_text('Congratulations!', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            draw_text('House is now pink.', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            selected = True
+                        else:
+                            surf_width = UP_MENU_WIDTH - 50
+                            surf_height = 150
+                            surf = pygame.Surface((surf_width, surf_height))
+                            surf.fill(WHITE)
+                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
+                            draw_text('= ' + str(HOUSE_COLORS_COST), surf,
+                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
+                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            self.upgrades_house_menu()
+                    elif UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_3 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_3:
+                        if HOUSE_COLORS_COST <= self.stars:
+                            self.stars -= HOUSE_COLORS_COST
+                            self.player_house.houseFile = HOUSE_BLUE
+                            self.player_house.garage = False
+                            draw_text('Congratulations!', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            draw_text('House is now blue.', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            selected = True
+                        else:
+                            surf_width = UP_MENU_WIDTH - 50
+                            surf_height = 150
+                            surf = pygame.Surface((surf_width, surf_height))
+                            surf.fill(WHITE)
+                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
+                            draw_text('= ' + str(HOUSE_COLORS_COST), surf,
+                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
+                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            self.upgrades_house_menu()
+                    elif UP_MENU_COL_2 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_2 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        if HOUSE_COLORS_COST <= self.stars:
+                            self.stars -= HOUSE_COLORS_COST
+                            self.player_house.houseFile = HOUSE_LBLUE
+                            self.player_house.garage = False
+                            draw_text('Congratulations!', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            draw_text('House is now light blue.', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            selected = True
+                        else:
+                            surf_width = UP_MENU_WIDTH - 50
+                            surf_height = 150
+                            surf = pygame.Surface((surf_width, surf_height))
+                            surf.fill(WHITE)
+                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
+                            draw_text('= ' + str(HOUSE_COLORS_COST), surf,
+                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
+                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            self.upgrades_house_menu()
+                    elif UP_MENU_COL_2 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_2 and UP_MENU_ROW_2 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_2:
+                        if HOUSE_GAR_DEF_COST <= self.stars:
+                            self.stars -= HOUSE_GAR_DEF_COST
+                            self.player_house.houseFile = HOUSE_GARAGE_WHITE
+                            self.player_house.garage = True
+                            draw_text('Congratulations!', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            draw_text('White house now has a garage.', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            selected = True
+                        else:
+                            surf_width = UP_MENU_WIDTH - 50
+                            surf_height = 150
+                            surf = pygame.Surface((surf_width, surf_height))
+                            surf.fill(WHITE)
+                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
+                            draw_text('= ' + str(HOUSE_GAR_DEF_COST), surf,
+                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
+                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            self.upgrades_house_menu()
+                    elif UP_MENU_COL_2 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_2 and UP_MENU_ROW_3 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_3:
+                        if HOUSE_GAR_COLOR_COST <= self.stars:
+                            self.stars -= HOUSE_GAR_COLOR_COST
+                            self.player_house.houseFile = HOUSE_GARAGE_PINK
+                            self.player_house.garage = True
+                            draw_text('Congratulations!', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            draw_text('Pink house now has a garage.', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            selected = True
+                        else:
+                            surf_width = UP_MENU_WIDTH - 50
+                            surf_height = 150
+                            surf = pygame.Surface((surf_width, surf_height))
+                            surf.fill(WHITE)
+                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
+                            draw_text('= ' + str(HOUSE_GAR_COLOR_COST), surf,
+                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
+                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            self.upgrades_house_menu()
+                    elif UP_MENU_COL_3 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_3 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        if HOUSE_GAR_COLOR_COST <= self.stars:
+                            self.stars -= HOUSE_GAR_COLOR_COST
+                            self.player_house.houseFile = HOUSE_GARAGE_BLUE
+                            self.player_house.garage = True
+                            draw_text('Congratulations!', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 120), (UP_MENU_Y + (UP_MENU_HEIGHT / 2) - 50)],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            draw_text('Blue house now has a garage.', self.screen,
+                                      [(UP_MENU_X + (UP_MENU_WIDTH / 2) - 170), (UP_MENU_Y + (UP_MENU_HEIGHT / 2))],
+                                      SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            selected = True
+                        else:
+                            surf_width = UP_MENU_WIDTH - 50
+                            surf_height = 150
+                            surf = pygame.Surface((surf_width, surf_height))
+                            surf.fill(WHITE)
+                            draw_text('Sorry! You need', surf, [20, 20], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.star_img.draw(surf, 0, 20, 60, pygame.SRCALPHA)
+                            draw_text('= ' + str(HOUSE_GAR_COLOR_COST), surf,
+                                      [20 + STAR_WIDTH + STAR_BUFFER, 75], SMALL_TEXT_SIZE, BLACK, ALL_FONT)
+                            self.screen.blit(surf, ((UP_MENU_X + UP_MENU_WIDTH / 2) - (surf_width / 2),
+                                                    (UP_MENU_Y + UP_MENU_HEIGHT / 2) - (surf_height / 2)))
+                            pygame.display.update()
+                            pygame.event.wait()
+                            pygame.time.delay(TWO_DELAY)
+                            self.upgrades_house_menu()
+                    # elif UP_MENU_X + UP_MENU_WIDTH - EXIT_WIDTH <= mouse_pos[0] <= UP_MENU_X + UP_MENU_WIDTH and\
+                    #         UP_MENU_Y <= mouse_pos[1] <= UP_MENU_Y + EXIT_HEIGHT:
+                    #     # change this to be if click outside menu box
+                    #     selected = True
+                    elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
+                            (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
+                        selected = True
+        self.upgrades_draw()
+
+    def upgrades_display_element(self, img, img_width, img_height, img_x, img_y, surface=None, update=False):
+        surf = pygame.transform.smoothscale(img, (img_width, img_height))
+        if surface is None:
+            self.screen.blit(surf, (img_x, img_y))
+        else:
+            surface.blit(surf, (img_x, img_y))
+        if update:
+            pygame.display.update()
+
+    ########################### END UPGRADES FUNCTIONS ######################
 
     ############################### LEARN DIGITS FUNCTIONS ################################
     def learn_digits_events(self):
@@ -299,7 +656,7 @@ class App:
                 self.display_continue = False
                 self.learn_digits_stage2()
                 self.display_continue = True
-            if event.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[0] >= MAIN_X and MAIN_Y +\
+            if event.type == pygame.MOUSEBUTTONUP and MAIN_X + MAIN_BUTTON_WIDTH >= mouse_pos[0] >= MAIN_X and MAIN_Y + \
                     MAIN_BUTTON_HEIGHT >= mouse_pos[1] >= MAIN_Y:
                 self.display_continue = False
                 self.display_score = False
@@ -325,6 +682,8 @@ class App:
         if self.display_continue:
             self.continue_button.draw()
         self.return_main.draw()
+        self.star_img.draw(self.screen, 0, STAR_X, STAR_Y, K_PURPLE)
+        draw_text("= " + str(self.stars), self.screen, [STAR_X + 50, STAR_Y + 10], 20, BLACK, ALL_FONT)
         pygame.display.update()
 
     def learn_digits_load(self):
@@ -404,7 +763,7 @@ class App:
             self.play_number(find_digit)
             self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1], K_PURPLE)
             self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1], K_PURPLE)
-            self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE)
+            self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE, True)
             self.display_skip = False
 
             while not found:
@@ -412,21 +771,21 @@ class App:
                 for selection in pygame.event.get():
                     if ((num1_pos[0] + NUM_DISPLAY_WIDTH) >= mouse_pos[0] >= (
                             num1_pos[0])) and ((num1_pos[1] + NUM_DISPLAY_HEIGHT) >= mouse_pos[1] >= (num1_pos[1])):
-                        self.higl_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1], K_PURPLE)
+                        self.higl_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1], K_PURPLE, True)
                     else:
-                        self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1], K_PURPLE)
+                        self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1], K_PURPLE, True)
 
                     if ((num2_pos[0] + NUM_DISPLAY_WIDTH) >= mouse_pos[0] >= (num2_pos[0])) and (
                             num2_pos[1] + NUM_DISPLAY_HEIGHT) >= mouse_pos[1] >= (num2_pos[1]):
-                        self.higl_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1], K_PURPLE)
+                        self.higl_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1], K_PURPLE, True)
                     else:
-                        self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1], K_PURPLE)
+                        self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1], K_PURPLE, True)
 
                     if (num3_pos[0] + NUM_DISPLAY_WIDTH) >= mouse_pos[0] >= (num3_pos[0]) and (
                             num3_pos[1] + NUM_DISPLAY_HEIGHT) >= mouse_pos[1] >= (num3_pos[1]):
-                        self.higl_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE)
+                        self.higl_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE, True)
                     else:
-                        self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE)
+                        self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE, True)
 
                     if selection.type == pygame.QUIT:
                         pygame.quit()
@@ -448,6 +807,7 @@ class App:
                             found = True
                             self.incorrect_find = 0
                             self.score += 1
+                            self.stars += 1
 
                         elif (num_pos_list[num1_idx][0] + NUM_DISPLAY_WIDTH) >= mouse_pos[0] >= (
                                 num_pos_list[num1_idx][0]) and (num_pos_list[num1_idx][1] + NUM_DISPLAY_HEIGHT) \
@@ -469,13 +829,15 @@ class App:
                                 self.play_clip(LOOKS_LIKE)
                                 self.learn_digits_draw()
                                 self.reg_num_imgs.draw(self.screen, find_digit, SCREEN_CENTER[0] - (
-                                        NUM_DISPLAY_WIDTH / 2), SCREEN_CENTER[1] - (NUM_DISPLAY_HEIGHT / 2), K_PURPLE)
+                                        NUM_DISPLAY_WIDTH / 2), SCREEN_CENTER[1] - (NUM_DISPLAY_HEIGHT / 2), K_PURPLE,
+                                                       True)
                                 self.play_clip(FIND_DIGIT)
                                 self.play_number(find_digit)
                                 self.learn_digits_draw()
                                 self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1], K_PURPLE)
                                 self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1], K_PURPLE)
-                                self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE)
+                                self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE,
+                                                       True)
 
                         elif (num_pos_list[num2_idx][0] + NUM_DISPLAY_WIDTH) >= mouse_pos[0] >= (
                                 num_pos_list[num2_idx][0]) and (num_pos_list[num2_idx][1] + NUM_DISPLAY_HEIGHT) \
@@ -497,13 +859,15 @@ class App:
                                 self.play_clip(LOOKS_LIKE)
                                 self.learn_digits_draw()
                                 self.reg_num_imgs.draw(self.screen, find_digit, SCREEN_CENTER[0] - (
-                                        NUM_DISPLAY_WIDTH / 2), SCREEN_CENTER[1] - (NUM_DISPLAY_HEIGHT / 2), K_PURPLE)
+                                        NUM_DISPLAY_WIDTH / 2), SCREEN_CENTER[1] - (NUM_DISPLAY_HEIGHT / 2), K_PURPLE,
+                                                       True)
                                 self.play_clip(FIND_DIGIT)
                                 self.play_number(find_digit)
                                 self.learn_digits_draw()
                                 self.reg_num_imgs.draw(self.screen, find_list[0], num1_pos[0], num1_pos[1], K_PURPLE)
                                 self.reg_num_imgs.draw(self.screen, find_list[1], num2_pos[0], num2_pos[1], K_PURPLE)
-                                self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE)
+                                self.reg_num_imgs.draw(self.screen, find_list[2], num3_pos[0], num3_pos[1], K_PURPLE,
+                                                       True)
         self.score = 0
 
     ######################### END LEARN DIGITS ################################
@@ -580,6 +944,8 @@ class App:
         if self.display_continue:
             self.continue_button.draw()
         self.return_main.draw()
+        self.star_img.draw(self.screen, 0, STAR_X, STAR_Y, K_PURPLE)
+        draw_text("= " + str(self.stars), self.screen, [STAR_X + 50, STAR_Y + 10], 20, BLACK, ALL_FONT)
         pygame.display.update()
 
     def learn_alphabet_load(self):
@@ -604,7 +970,7 @@ class App:
         ALPHABET_SONG.set_volume(0.2)
         ALPHABET_SONG.play()
         pygame.time.set_timer(pygame.USEREVENT, ABC_DELAYS[index])
-        self.skip_img.draw(self.screen, 0, SKIP_X, SKIP_Y, SKIP_COLOR)
+        self.skip_img.draw(self.screen, 0, SKIP_X, SKIP_Y, SKIP_COLOR, True)
         while pygame.mixer.get_busy():
             mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get():
@@ -614,7 +980,7 @@ class App:
                         ALPHABET_SONG.stop()
                 if event.type == pygame.USEREVENT:
                     image.draw(self.screen, index, SCREEN_CENTER[0] - (ABC_BUTTON_WIDTH / 2),
-                               SCREEN_CENTER[1] - (ABC_BUTTON_HEIGHT / 2), K_PURPLE)
+                               SCREEN_CENTER[1] - (ABC_BUTTON_HEIGHT / 2), K_PURPLE, True)
                     if index <= len(ABC_DELAYS) - 2:
                         index += 1
                         pygame.time.set_timer(pygame.USEREVENT, ABC_DELAYS[index])
@@ -676,7 +1042,7 @@ class App:
             self.play_letter(find_letter)
             reg_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE)
             reg_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE)
-            reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE)
+            reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE, True)
             self.display_skip = False
 
             while not found:
@@ -685,21 +1051,21 @@ class App:
                     if ((letter1_pos[0] + ABC_WIDTH) >= mouse_pos[0] >= (
                             letter1_pos[0])) and (
                             (letter1_pos[1] + ABC_HEIGHT) >= mouse_pos[1] >= (letter1_pos[1])):
-                        hi_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE)
+                        hi_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE, True)
                     else:
-                        reg_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE)
+                        reg_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE, True)
 
                     if ((letter2_pos[0] + ABC_WIDTH) >= mouse_pos[0] >= (letter2_pos[0])) and (
                             letter2_pos[1] + ABC_HEIGHT) >= mouse_pos[1] >= (letter2_pos[1]):
-                        hi_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE)
+                        hi_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE, True)
                     else:
-                        reg_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE)
+                        reg_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE, True)
 
                     if (letter3_pos[0] + ABC_WIDTH) >= mouse_pos[0] >= (letter3_pos[0]) and (
                             letter3_pos[1] + ABC_HEIGHT) >= mouse_pos[1] >= (letter3_pos[1]):
-                        hi_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE)
+                        hi_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE, True)
                     else:
-                        reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE)
+                        reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE, True)
 
                     if selection.type == pygame.QUIT:
                         pygame.quit()
@@ -721,9 +1087,7 @@ class App:
                             found = True
                             self.incorrect_find = 0
                             self.score += 1
-                            # if self.score >= 10:
-                            #     self.state = ZERO_TO_TEN
-                            #     self.load_state = True
+                            self.stars += 1
 
                         elif (letter_pos_list[letter1_idx][0] + ABC_WIDTH) >= mouse_pos[0] >= (
                                 letter_pos_list[letter1_idx][0]) and (letter_pos_list[letter1_idx][1] + ABC_HEIGHT) \
@@ -745,13 +1109,14 @@ class App:
                                 self.play_clip(LOOKS_LIKE)
                                 self.learn_alphabet_draw()
                                 reg_image.draw(self.screen, find_letter, SCREEN_CENTER[0] - (
-                                        ABC_WIDTH / 2), SCREEN_CENTER[1] - (ABC_HEIGHT / 2), K_PURPLE)
+                                        ABC_WIDTH / 2), SCREEN_CENTER[1] - (ABC_HEIGHT / 2), K_PURPLE, True)
                                 self.play_clip(FIND_LETTER)
                                 self.play_letter(find_letter)
                                 self.learn_alphabet_draw()
                                 reg_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE)
                                 reg_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE)
-                                reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE)
+                                reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE,
+                                               True)
 
                         elif (letter_pos_list[letter2_idx][0] + ABC_WIDTH) >= mouse_pos[0] >= (
                                 letter_pos_list[letter2_idx][0]) and (letter_pos_list[letter2_idx][1] + ABC_HEIGHT) \
@@ -773,13 +1138,14 @@ class App:
                                 self.play_clip(LOOKS_LIKE)
                                 self.learn_alphabet_draw()
                                 reg_image.draw(self.screen, find_letter, SCREEN_CENTER[0] - (
-                                        ABC_WIDTH / 2), SCREEN_CENTER[1] - (ABC_HEIGHT / 2), K_PURPLE)
+                                        ABC_WIDTH / 2), SCREEN_CENTER[1] - (ABC_HEIGHT / 2), K_PURPLE, True)
                                 self.play_clip(FIND_LETTER)
                                 self.play_letter(find_letter)
                                 self.learn_alphabet_draw()
                                 reg_image.draw(self.screen, find_list[0], letter1_pos[0], letter1_pos[1], K_PURPLE)
                                 reg_image.draw(self.screen, find_list[1], letter2_pos[0], letter2_pos[1], K_PURPLE)
-                                reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE)
+                                reg_image.draw(self.screen, find_list[2], letter3_pos[0], letter3_pos[1], K_PURPLE,
+                                               True)
         self.score = 0
 
     ######################## END LEARN ALPHABET ######################
@@ -797,6 +1163,8 @@ class App:
             SCREEN_CENTER[0], 100], WELCOME_SIZE, K_PURPLE, ALL_FONT, centered=True)
         self.number_button.draw()
         self.letter_button.draw()
+        self.star_img.draw(self.screen, 0, STAR_X, STAR_Y + 70, K_BLUE)
+        draw_text("= " + str(self.stars), self.screen, [STAR_X + 50, STAR_Y + 80], 20, BLACK, ALL_FONT)
         pygame.display.update()
         self.play_clip(NUMS_OR_LETTERS)
         self.play_clip(FOR_NUMS)
@@ -826,7 +1194,7 @@ class App:
         index = 0
         while index <= 9:
             self.reg_num_imgs.draw(self.screen, index, SCREEN_CENTER[0] - (NUM_DISPLAY_WIDTH / 2),
-                                   SCREEN_CENTER[1] - (NUM_DISPLAY_HEIGHT / 2), K_PURPLE)
+                                   SCREEN_CENTER[1] - (NUM_DISPLAY_HEIGHT / 2), K_PURPLE, True)
             numbers_list[index].play()
             while pygame.mixer.get_busy():
                 pygame.time.delay(delay)
@@ -848,7 +1216,7 @@ class App:
         """
         index = 1
         while index <= 10:
-            self.reg_num_imgs.draw(self.screen, index, SCREEN_CENTER[0], SCREEN_CENTER[1])
+            self.reg_num_imgs.draw(self.screen, index, SCREEN_CENTER[0], SCREEN_CENTER[1], K_BLUE, True)
             numbers_list[index].play()
             while pygame.mixer.get_busy():
                 pygame.time.delay(delay)
@@ -876,7 +1244,7 @@ class App:
         """
         clip.play()
         while pygame.mixer.get_busy():
-            self.skip_img.draw(self.screen, 0, SKIP_X, SKIP_Y, SKIP_COLOR)
+            self.skip_img.draw(self.screen, 0, SKIP_X, SKIP_Y, SKIP_COLOR, True)
             mouse_pos = pygame.mouse.get_pos()
             self.clock.tick(delay)
             for event in pygame.event.get():

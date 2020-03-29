@@ -23,6 +23,8 @@ class House:
         self.garage = False
         self.garageDoorFile = GARAGE_DOOR_DEFAULT_WHITE
         self.garageDoorImage = pygame.image.load(self.garageDoorFile).convert_alpha()
+        self.drivewayFile = DRIVEWAY_DEFAULT
+        self.drivewayImage = pygame.image.load(self.drivewayFile).convert_alpha()
         self.grass = False
         self.grassFile = GRASS_REG
         self.grassImage = pygame.image.load(self.grassFile).convert_alpha()
@@ -30,28 +32,27 @@ class House:
         self.floraFile = DAISIES
         self.floraImage = pygame.image.load(self.floraFile).convert_alpha()
         self.surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        self.pos = (0, 0)
 
-    def draw(self, image, index, x_pos, y_pos, back_color=K_ORANGE, button=None):
+    def draw(self, update=False):
         self.update()
-        self.screen.blit(self.backgroundImage, self.pos)
-        self.screen.blit(self.houseImage, self.pos)
-        self.screen.blit(self.windowImage, self.pos)
-        self.screen.blit(self.doorImage, self.pos)
+        self.screen.blit(self.backgroundImage, (0, 0))
         if self.grass:
-            self.screen.blit(self.grassImage, self.pos)
-        if self.garage:
-            self.screen.blit(self.garageDoorImage)
+            self.screen.blit(self.grassImage, GRASS_POS)
+        self.screen.blit(self.houseImage, HOUSE_POS)
+        self.screen.blit(self.windowImage, WINDOW1_POS)
+        self.screen.blit(self.windowImage, WINDOW2_POS)
+        self.screen.blit(self.doorImage, DOOR_POS)
         if self.hedge:
-            self.screen.blit(self.hedgeImage, self.pos)
+            self.screen.blit(self.hedgeImage, HEDGE_POS)
         if self.flora:
-            self.screen.blit(self.flora, self.pos)
+            self.screen.blit(self.floraImage, FLORA_POS)
+        if self.garage:
+            self.screen.blit(self.garageDoorImage, GARAGE_POS)
+            self.screen.blit(self.drivewayImage, DRIVEWAY_POS)
         if self.path:
-            self.screen.blit(self.pathImage, self.pos)
-        if button:
-            button.draw()
-        image.draw(self.screen, index, x_pos, y_pos, back_color)
-        pygame.display.update()
+            self.screen.blit(self.pathImage, PATH_POS)
+        if update:
+            pygame.display.update()
 
     def update(self):
         self.backgroundImage = pygame.image.load(self.backgroundFile).convert_alpha()

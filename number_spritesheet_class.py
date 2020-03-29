@@ -17,7 +17,7 @@ class NumberSprites:
         self.surf_height = surf_height
         self.surface1 = pygame.Surface((self.img_width, self.img_height), pygame.SRCALPHA)
 
-    def draw(self, screen, index, x_screen, y_screen, back_color):
+    def draw(self, screen, index, x_screen, y_screen, back_color, update_screen=False, resize=False, surf_w=25, surf_h=25):
         """
 
         :param screen:
@@ -34,11 +34,15 @@ class NumberSprites:
             # self.reg_num_imgs.draw(self.surface_1, index, NUM_DISPLAY_WIDTH / 2, NUM_DISPLAY_HEIGHT / 2)
             self.surface1.fill(back_color)
             self.surface1.blit(self.sheet, (0, 0), self.images[index])
-            surface2 = pygame.transform.smoothscale(self.surface1, (self.surf_width, self.surf_height))
+            if resize:
+                surface2 = pygame.transform.smoothscale(self.surface1, (surf_w, surf_h))
+            else:
+                surface2 = pygame.transform.smoothscale(self.surface1, (self.surf_width, self.surf_height))
             # surface3 = pygame.transform.scale(self.surface1)
             screen.blit(surface2, (x_screen, y_screen))
             # surface.blit(self.sheet, (x - self.center_width, y - self.center_height), self.images[index])
-            pygame.display.update()
+            if update_screen:
+                pygame.display.update()
 
     # In this function we are generating a list of the image positions.
     def splitImages(self):

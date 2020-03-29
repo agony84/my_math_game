@@ -12,6 +12,8 @@ ABC_LOWER_HIGH = 'images/abc_lower_highlight.png'
 SKIP_ARROWS = 'images/skip_arrows.png'
 HOUSE_BTN = 'images/house_images/house_button.png'
 BACK_ARROW = 'images/back_arrow.png'
+STAR = 'images/star.png'
+EXIT = 'images/exit.png'
 
 #################### HOUSE IMAGE FILES #########################
 
@@ -30,7 +32,7 @@ HOUSE_BLUE = 'images/house_images/houses/house_blue.png'
 HOUSE_LBLUE = 'images/house_images/houses/house_lightblue.png'
 HOUSE_PINK = 'images/house_images/houses/house_pink.png'
 
-HOUSE_GARAGE_WHITE = 'images/house_images/houses/house_default.png'
+HOUSE_GARAGE_WHITE = 'images/house_images/houses/house_with_garage_white.png'
 HOUSE_GARAGE_BLUE = 'images/house_images/houses/house_garage_blue.png'
 HOUSE_GARAGE_PINK = 'images/house_images/houses/house_garage_pink.png'
 
@@ -48,5 +50,12 @@ DAISIES = 'images/house_images/flora/daisies.png'
 # GARAGE DOORS
 GARAGE_DOOR_DEFAULT_WHITE = 'images/house_images/garage_doors/garage_door_default.png'
 
+# DRIVEWAYS
+DRIVEWAY_DEFAULT = 'images/house_images/driveways/driveway_default.png'
+
 # GRASS
 GRASS_REG = 'images/house_images/grass/grass_reg.png'
+
+# UPGRADE IMAGES
+UP_FLORA = 'images/house_images/flora_upgrade.png'
+UP_HEDGE = 'images/house_images/hedge_upgrade.png'
