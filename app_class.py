@@ -59,7 +59,7 @@ class App:
         self.sound_index = 0
         self.num_display = pygame.Surface((60, 60))
         # resources for learn_digits
-        self.stars = 1000
+        self.stars = 0
         self.index = 0
         self.play = True
         self.load_state = True
@@ -324,7 +324,17 @@ class App:
                 # Column two
                 if UP_COL_2 + UP_WIDTH >= mouse_pos[0] > UP_COL_2 and UP_ROW_1 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_1:
                     self.upgrades_path_selection()
-
+                if UP_COL_2 + UP_WIDTH >= mouse_pos[0] > UP_COL_2 and UP_ROW_2 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_2:
+                    self.upgrades_hedge_selection()
+                if UP_COL_2 + UP_WIDTH >= mouse_pos[0] > UP_COL_2 and UP_ROW_3 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_3:
+                    self.upgrades_flora_selection()
+                # Column three
+                if UP_COL_3 + UP_WIDTH >= mouse_pos[0] > UP_COL_3 and UP_ROW_1 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_1:
+                    self.upgrades_garagedoor_selection()
+                if UP_COL_3 + UP_WIDTH >= mouse_pos[0] > UP_COL_3 and UP_ROW_2 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_2:
+                    self.upgrades_driveway_selection()
+                if UP_COL_3 + UP_WIDTH >= mouse_pos[0] > UP_COL_3 and UP_ROW_3 + UP_HEIGHT >= mouse_pos[1] >= UP_ROW_3:
+                    self.upgrades_window_selection()
                 print(mouse_pos)
 
     def upgrades_update(self):
@@ -578,21 +588,21 @@ class App:
         up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
         up_surf_border.fill(K_PURPLE)
         up_surf.fill(K_GREEN)
-        concrete = pygame.image.load(PATH_CONCRETE)
+        concrete = pygame.image.load(PATH_CONCRETE).convert_alpha()
         self.upgrades_display_element(concrete, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y1, up_surf)
         self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
                                       UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
         draw_text("= " + str(PATH_COST), up_surf,
                   [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
                   12, BLACK, ALL_FONT)
-        stone = pygame.image.load(PATH_STONES)
+        stone = pygame.image.load(PATH_STONES).convert_alpha()
         self.upgrades_display_element(stone, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y2, up_surf)
         self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
                                       UP_MENU_Y2 + UP_HEIGHT + STAR_BUFFER, up_surf)
         draw_text("= " + str(PATH_COST), up_surf,
                   [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y2 + UP_HEIGHT + STAR_BUFFER + 4],
                   12, BLACK, ALL_FONT)
-        gravel = pygame.image.load(PATH_GRAVEL)
+        gravel = pygame.image.load(PATH_GRAVEL).convert_alpha()
         self.upgrades_display_element(gravel, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y3, up_surf)
         self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
                                       UP_MENU_Y3 + UP_HEIGHT + STAR_BUFFER, up_surf)
@@ -627,6 +637,199 @@ class App:
                     elif UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_3 + UP_HEIGHT >= \
                             mouse_pos[1] >= UP_MENU_ROW_3:
                         self.upgrades_selected("path", PATH_COST, PATH_GRAVEL, 'Gravel path activated', True)
+                        selected = True
+                    elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
+                            (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
+                        selected = True
+        self.upgrades_draw()
+    
+    def upgrades_hedge_menu(self):
+        # display all grass menu items with corresponding cost
+        star = pygame.image.load(STAR).convert_alpha()
+        up_surf = pygame.Surface((UP_MENU_WIDTH, UP_MENU_HEIGHT))
+        up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
+        up_surf_border.fill(K_PURPLE)
+        up_surf.fill(K_GREEN)
+        default = pygame.image.load(UP_HEDGE).convert_alpha()
+        self.upgrades_display_element(default, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(HEDGE_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        self.screen.blit(up_surf_border, (UP_MENU_X - 5, UP_MENU_Y - 5))
+        self.screen.blit(up_surf, (UP_MENU_X, UP_MENU_Y))
+        pygame.display.update()
+
+    def upgrades_hedge_selection(self):
+        selected = False
+        self.upgrades_hedge_menu()
+        # Get user selection
+        while not selected:
+            mouse_pos = pygame.mouse.get_pos()
+            for selection in pygame.event.get():
+                if selection.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                    if UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        self.upgrades_selected("hedge", HEDGE_COST, HEDGE_REG, "Hedge activated.", True)
+                        selected = True
+                    elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
+                            (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
+                        selected = True
+        self.upgrades_draw()
+
+    def upgrades_flora_menu(self):
+        # display all grass menu items with corresponding cost
+        star = pygame.image.load(STAR).convert_alpha()
+        up_surf = pygame.Surface((UP_MENU_WIDTH, UP_MENU_HEIGHT))
+        up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
+        up_surf_border.fill(K_PURPLE)
+        up_surf.fill(K_GREEN)
+        default = pygame.image.load(UP_FLORA).convert_alpha()
+        self.upgrades_display_element(default, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(FLORA_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        self.screen.blit(up_surf_border, (UP_MENU_X - 5, UP_MENU_Y - 5))
+        self.screen.blit(up_surf, (UP_MENU_X, UP_MENU_Y))
+        pygame.display.update()
+
+    def upgrades_flora_selection(self):
+        selected = False
+        self.upgrades_flora_menu()
+        # Get user selection
+        while not selected:
+            mouse_pos = pygame.mouse.get_pos()
+            for selection in pygame.event.get():
+                if selection.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                    if UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        self.upgrades_selected("flora", FLORA_COST, DAISIES, "Flora activated.", True)
+                        selected = True
+                    elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
+                            (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
+                        selected = True
+        self.upgrades_draw()
+
+    def upgrades_garagedoor_menu(self):
+        # display all grass menu items with corresponding cost
+        star = pygame.image.load(STAR).convert_alpha()
+        up_surf = pygame.Surface((UP_MENU_WIDTH, UP_MENU_HEIGHT))
+        up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
+        up_surf_border.fill(K_PURPLE)
+        up_surf.fill(K_GREEN)
+        default = pygame.image.load(GARAGE_DOOR_DEFAULT_WHITE).convert_alpha()
+        self.upgrades_display_element(default, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(GARAGE_DOOR_COLOR_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        self.screen.blit(up_surf_border, (UP_MENU_X - 5, UP_MENU_Y - 5))
+        self.screen.blit(up_surf, (UP_MENU_X, UP_MENU_Y))
+        pygame.display.update()
+
+    def upgrades_garagedoor_selection(self):
+        selected = False
+        self.upgrades_garagedoor_menu()
+        # Get user selection
+        while not selected:
+            mouse_pos = pygame.mouse.get_pos()
+            for selection in pygame.event.get():
+                if selection.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                    if UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        self.upgrades_selected("garage door", GARAGE_DOOR_COLOR_COST, GARAGE_DOOR_DEFAULT_WHITE,
+                                               "White garage door activated.")
+                        selected = True
+                    elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
+                            (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
+                        selected = True
+        self.upgrades_draw()
+
+    def upgrades_driveway_menu(self):
+        # display all grass menu items with corresponding cost
+        star = pygame.image.load(STAR).convert_alpha()
+        up_surf = pygame.Surface((UP_MENU_WIDTH, UP_MENU_HEIGHT))
+        up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
+        up_surf_border.fill(K_PURPLE)
+        up_surf.fill(K_GREEN)
+        default = pygame.image.load(DRIVEWAY_DEFAULT).convert_alpha()
+        self.upgrades_display_element(default, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(DRIVEWAY_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        self.screen.blit(up_surf_border, (UP_MENU_X - 5, UP_MENU_Y - 5))
+        self.screen.blit(up_surf, (UP_MENU_X, UP_MENU_Y))
+        pygame.display.update()
+
+    def upgrades_driveway_selection(self):
+        selected = False
+        self.upgrades_driveway_menu()
+        # Get user selection
+        while not selected:
+            mouse_pos = pygame.mouse.get_pos()
+            for selection in pygame.event.get():
+                if selection.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                    if UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        self.upgrades_selected("driveway", DRIVEWAY_COST, DRIVEWAY_DEFAULT,
+                                               "Concrete driveway activated.")
+                        selected = True
+                    elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
+                            (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
+                        selected = True
+        self.upgrades_draw()
+
+    def upgrades_window_menu(self):
+        # display all grass menu items with corresponding cost
+        star = pygame.image.load(STAR).convert_alpha()
+        up_surf = pygame.Surface((UP_MENU_WIDTH, UP_MENU_HEIGHT))
+        up_surf_border = pygame.Surface((UP_MENU_WIDTH + 10, UP_MENU_HEIGHT + 10))
+        up_surf_border.fill(K_PURPLE)
+        up_surf.fill(K_GREEN)
+        default = pygame.image.load(WINDOW_DEF).convert_alpha()
+        self.upgrades_display_element(default, UP_WIDTH, UP_HEIGHT, UP_MENU_X1, UP_MENU_Y1, up_surf)
+        self.upgrades_display_element(star, UP_STAR_W_H, UP_STAR_W_H, UP_MENU_X1 - STAR_BUFFER,
+                                      UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER, up_surf)
+        draw_text("= " + str(WINDOW_COLOR_COST), up_surf,
+                  [UP_MENU_X1 + UP_STAR_W_H + 2, UP_MENU_Y1 + UP_HEIGHT + STAR_BUFFER + 4],
+                  12, BLACK, ALL_FONT)
+        self.screen.blit(up_surf_border, (UP_MENU_X - 5, UP_MENU_Y - 5))
+        self.screen.blit(up_surf, (UP_MENU_X, UP_MENU_Y))
+        pygame.display.update()
+
+    def upgrades_window_selection(self):
+        selected = False
+        self.upgrades_window_menu()
+        # Get user selection
+        while not selected:
+            mouse_pos = pygame.mouse.get_pos()
+            for selection in pygame.event.get():
+                if selection.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if selection.type == pygame.MOUSEBUTTONUP and selection.button == 1:
+                    if UP_MENU_COL_1 + UP_WIDTH >= mouse_pos[0] >= UP_MENU_COL_1 and UP_MENU_ROW_1 + UP_HEIGHT >= \
+                            mouse_pos[1] >= UP_MENU_ROW_1:
+                        self.upgrades_selected("window", WINDOW_COLOR_COST, WINDOW_DEF,
+                                               "White window activated.")
                         selected = True
                     elif (UP_MENU_X > mouse_pos[0] or UP_MENU_X + UP_MENU_WIDTH < mouse_pos[0]) or \
                             (UP_MENU_Y > mouse_pos[1] or UP_MENU_Y + UP_MENU_HEIGHT < mouse_pos[1]):
